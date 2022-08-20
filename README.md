@@ -8,9 +8,15 @@ Porting the xv6-labs-2021 to the LoongArch. Inspired by MIT's xv6-riscv Edition,
 
 ## Run on qemu-system-loongarch64
 
-```bash
+try:
 
+```bash
 make all
 cd qemu-loongarch64-runenv
 ./run
+```
+or
+
+```bash
+make qemu
 ```

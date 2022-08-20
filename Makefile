@@ -1,6 +1,17 @@
 K=kernel
 U=user
 
+# >= 512M
+MEM=4G
+# 1-4
+CPUS=1
+BIOS=./qemu-loongarch64-runenv/loongarch_bios_0310_debug.bin
+KERNEL=./kernel/kernel
+QEMU=qemu-system-loongarch64
+CMDLINE=root=/dev/ram console=ttyS0,115200 rdinit=/init
+GRAPHIC=-vga none -nographic
+
+
 OBJS = \
   $K/entry.o \
   $K/main.o \
@@ -126,6 +137,9 @@ fs.img: mkfs/mkfs README.md $(UPROGS)
 -include kernel/*.d user/*.d
 
 all: fs.img $K/kernel 
+
+qemu: fs.img $K/kernel
+	$(QEMU) -m $(MEM) -smp $(CPUS) -bios $(BIOS) -kernel $(KERNEL) -append "$(CMDLINE)" $(GRAPHIC) -L ./qemu-loongarch64-runenv
 
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg *.d \
