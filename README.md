@@ -1,11 +1,10 @@
-# xv6-loongarch
+# xv6-labs-loongarch
 
-Porting the xv6 OS to the LoongArch. Inspired by MIT's xv6-riscv Edition, check https://github.com/mit-pdos/xv6-riscv for more details.
+Porting the xv6-labs-2021 to the LoongArch. Inspired by MIT's xv6-riscv Edition, check https://pdos.csail.mit.edu/6.828/2021/tools.html for more details.
 
 ## Dependencies
 
-* [LoongArch Toolchain](https://github.com/loongson/build-tools/releases/download/2021.12.21/loongarch64-clfs-2021-12-18-cross-tools-gcc-full.tar.xz)
-* [Qemu](https://github.com/foxsen/qemu.git)
+* [qemu-loongarch-runenv](https://github.com/foxsen/qemu-loongarch-runenv)
 
 ## Run on qemu-system-loongarch64
 
@@ -13,5 +12,5 @@ Porting the xv6 OS to the LoongArch. Inspired by MIT's xv6-riscv Edition, check 
 
 make all
 cd qemu-loongarch64-runenv
-./run_loongach.sh -k ../kernel/kernel
+./run
 ```
