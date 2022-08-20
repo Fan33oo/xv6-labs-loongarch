@@ -57,3 +57,8 @@ dkms.conf
 /kernel/kernel
 fs.img
 _*
+mkfs/mkfs
+user/initcode
+user/usys.S
+.gitignore
+kernel/ramdisk.h
