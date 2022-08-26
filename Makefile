@@ -138,14 +138,31 @@ fs.img: mkfs/mkfs README.md $(UPROGS)
 
 all: fs.img $K/kernel 
 
+QEMUOPTS=-m $(MEM) -smp $(CPUS) -bios $(BIOS) -kernel $(KERNEL) -append "$(CMDLINE)" $(GRAPHIC) -L ./qemu-loongarch64-runenv
+
 qemu: fs.img $K/kernel
-	$(QEMU) -m $(MEM) -smp $(CPUS) -bios $(BIOS) -kernel $(KERNEL) -append "$(CMDLINE)" $(GRAPHIC) -L ./qemu-loongarch64-runenv
+	$(QEMU) $(QEMUOPTS)
+
+# try to generate a unique GDB port
+GDBPORT = $(shell expr `id -u` % 5000 + 25000)
+# QEMU's gdb stub command line changed in 0.11
+QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
+	then echo "-gdb tcp::$(GDBPORT)"; \
+	else echo "-s -p $(GDBPORT)"; fi)
+
+
+print-gdbport:
+	@echo $(GDBPORT)
+
+qemu-gdb: fs.img $K/kernel .gdbinit
+	@echo "Now run 'loongarch64-unknown-linux-gnu-gdb' in another window"
+	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg *.d \
 	*/*.o */*.d */*.asm */*.sym \
 	$U/initcode $U/initcode.out $K/kernel fs.img \
-	mkfs/mkfs .gdbinit \
+	mkfs/mkfs\
         $U/usys.S \
 	$(UPROGS)
 
