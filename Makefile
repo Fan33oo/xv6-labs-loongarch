@@ -4,7 +4,7 @@ U=user
 # >= 512M
 MEM=4G
 # 1-4
-CPUS=1
+CPUS=2
 BIOS=./qemu-loongarch64-runenv/loongarch_bios_0310_debug.bin
 KERNEL=./kernel/kernel
 QEMU=qemu-system-loongarch64
@@ -130,6 +130,7 @@ UPROGS=\
 	$U/_sleep\
 	$U/_pingpong\
 	$U/_primes\
+	$U/_find\
 
 fs.img: mkfs/mkfs README.md $(UPROGS)
 	mkfs/mkfs fs.img README.md $(UPROGS)
