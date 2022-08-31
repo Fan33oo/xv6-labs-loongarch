@@ -8,12 +8,12 @@ int main(int argc, char *argv[])
     char buf[10];
     if (pipe(p1) < 0)
     {
-        fprintf(2, "pipe error");
+        fprintf(2, "pipe error\n");
         exit(1);
     }
     if (pipe(p2) < 0)
     {
-        fprintf(2, "pipe error");
+        fprintf(2, "pipe error\n");
         exit(1);
     }
     int pid = fork();
