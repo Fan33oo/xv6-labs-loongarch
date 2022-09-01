@@ -132,9 +132,10 @@ UPROGS=\
 	$U/_primes\
 	$U/_find\
 	$U/_xargs\
+	$U/_trace\
 
-fs.img: mkfs/mkfs README.md $(UPROGS)
-	mkfs/mkfs fs.img README.md $(UPROGS)
+fs.img: mkfs/mkfs README.md $(UPROGS) text
+	mkfs/mkfs fs.img README.md $(UPROGS) text
 	xxd -i fs.img > kernel/ramdisk.h
 
 -include kernel/*.d user/*.d

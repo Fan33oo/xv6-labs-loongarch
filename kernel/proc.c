@@ -281,6 +281,9 @@ fork(void)
   }
   np->sz = p->sz;
 
+  // copy sys_trace_mask.
+  np->sys_trace_mask = p->sys_trace_mask;
+
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 
@@ -292,6 +295,7 @@ fork(void)
     if(p->ofile[i])
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
+
 
   safestrcpy(np->name, p->name, sizeof(p->name));
 

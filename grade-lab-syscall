@@ -8,7 +8,7 @@ r = Runner(save("xv6.out"))
 @test(5, "trace 32 grep")
 def test_trace_32_grep():
     r.run_qemu(shell_script([
-        'trace 32 grep hello README'
+        'trace 32 grep hello text'
     ]))
     r.match('^\\d+: syscall read -> 1023')
     r.match('^\\d+: syscall read -> 968')
@@ -18,7 +18,7 @@ def test_trace_32_grep():
 @test(5, "trace all grep")
 def test_trace_all_grep():
     r.run_qemu(shell_script([
-        'trace 2147483647 grep hello README'
+        'trace 2147483647 grep hello text'
     ]))
     r.match('^\\d+: syscall trace -> 0')
     r.match('^\\d+: syscall exec -> 3')
@@ -32,7 +32,7 @@ def test_trace_all_grep():
 @test(5, "trace nothing")
 def test_trace_nothing():
     r.run_qemu(shell_script([
-        'grep hello README'
+        'grep hello text'
     ]))
     r.match(no=[".* syscall .*"])
 
