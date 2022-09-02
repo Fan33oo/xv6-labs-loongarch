@@ -1,5 +1,5 @@
 #include "kernel/types.h"
-#include "kernel/riscv.h"
+#include "kernel/loongarch.h"
 #include "kernel/sysinfo.h"
 #include "user/user.h"
 

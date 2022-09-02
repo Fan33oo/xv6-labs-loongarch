@@ -133,6 +133,7 @@ UPROGS=\
 	$U/_find\
 	$U/_xargs\
 	$U/_trace\
+	$U/_sysinfotest
 
 fs.img: mkfs/mkfs README.md $(UPROGS) text
 	mkfs/mkfs fs.img README.md $(UPROGS) text
