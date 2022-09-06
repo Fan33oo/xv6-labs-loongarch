@@ -63,7 +63,6 @@ struct trapframe {
   /* 272 */ uint64 kernel_pgdl;   // saved kernel pagetable
 };
 
-
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 struct proc
@@ -89,4 +88,5 @@ struct proc
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  struct usyscall *usyscall;
 };

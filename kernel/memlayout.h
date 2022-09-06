@@ -44,3 +44,9 @@
 //   KSRACK (used for kernel thread)
 //   TRAPFRAME (p->trapframe, used by the uservec)
 #define TRAPFRAME (MAXVA - PGSIZE)
+
+#define USYSCALL (TRAPFRAME - PGSIZE)
+
+struct usyscall {
+  int pid;  // Process ID
+};
