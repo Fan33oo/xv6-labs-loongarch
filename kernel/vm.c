@@ -395,20 +395,16 @@ print_page_table(pagetable_t pagetable, int k)
 {
   for(int i = 0; i < 512; i++){
     pte_t pte = pagetable[i];
-    if((pte & PTE_V) && (PTE_FLAGS(pte) == PTE_V)){
+    if(pte & PTE_V){
       // this PTE points to a lower-level page table.
       for (int j = 0; j < k; j++) {
         printf(".. ");
       }
       printf("..%d: pte %p pa %p\n", i, PTE_FLAGS(pte), PTE2PA(pte));
-      uint64 child = (PTE2PA(pte) | DMWIN_MASK);
-      print_page_table((pagetable_t)child, ++k);
-      pagetable[i] = 0;
-    } else if(pte & PTE_V){
-      for (int j = 0; j < k; j++) {
-        printf(".. ");
+      if (PTE_FLAGS(pte) == PTE_V) {
+        uint64 child = (PTE2PA(pte) | DMWIN_MASK);
+        print_page_table((pagetable_t)child, ++k);
       }
-      printf("..%d: pte %p pa %p\n", i, PTE_FLAGS(pte), PTE2PA(pte));
     }
   }
   return;
