@@ -15,5 +15,21 @@ handle_tlbr:
 	ldpte	$t0, 0
 	ldpte	$t0, 1
 	tlbfill
+
+	csrrd   $t1, LOONGARCH_CSR_TLBRBADV
+	li.d	$t2, 0b111111111
+	slli.d	$t2, $t2, 12
+	and		$t1, $t2, $t1
+	srli.d 	$t1, $t1, 12
+	li.d    $t3, 8
+	mul.d   $t1, $t1, $t3
+	add.d   $t3, $t0, $t1
+	ld.d    $t1, $t3, 0
+	li.d    $t2, 1
+	slli.d	$t2, $t2, 60
+	or		$t1, $t2, $t1
+	st.d  	$t1, $t3, 0
+	 
+
 	csrrd	$t0, LOONGARCH_CSR_TLBRSAVE
 	ertn

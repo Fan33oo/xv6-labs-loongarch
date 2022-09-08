@@ -400,7 +400,7 @@ print_page_table(pagetable_t pagetable, int k)
       for (int j = 0; j < k; j++) {
         printf(".. ");
       }
-      printf("..%d: pte %p pa %p\n", i, PTE_FLAGS(pte), PTE2PA(pte));
+      printf("..%d: pte %p pa %p\n", i, pte, PTE2PA(pte));
       if (PTE_FLAGS(pte) == PTE_V) {
         uint64 child = (PTE2PA(pte) | DMWIN_MASK);
         print_page_table((pagetable_t)child, ++k);
