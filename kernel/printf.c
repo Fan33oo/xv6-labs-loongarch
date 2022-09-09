@@ -130,3 +130,14 @@ printfinit(void)
   initlock(&pr.lock, "pr");
   pr.locking = 1;
 }
+
+void
+backtrace()
+{
+  uint64 sp = r_sp();
+  uint64 top = PGROUNDUP(sp);
+  uint64 bottom = PGROUNDDOWN(sp);
+  printf("backtrace:\n");
+
+  while(uint64)
+}

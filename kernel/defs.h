@@ -18,6 +18,7 @@ void            consputc(int);
 void            printf(char*, ...);
 void            panic(char*) __attribute__((noreturn));
 void            printfinit(void);
+void            backtrace(void);
 
 // spinlock.c
 void            acquire(struct spinlock*);
