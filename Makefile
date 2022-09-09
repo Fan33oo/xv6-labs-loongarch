@@ -127,14 +127,12 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
-	$U/_sleep\
-	$U/_pingpong\
-	$U/_primes\
-	$U/_find\
-	$U/_xargs\
+	$U/_call\
+	$U/_bttest\
 
-fs.img: mkfs/mkfs README.md $(UPROGS) user/xargstest.sh
-	mkfs/mkfs fs.img README.md $(UPROGS) user/xargstest.sh
+
+fs.img: mkfs/mkfs README.md $(UPROGS)
+	mkfs/mkfs fs.img README.md $(UPROGS)
 	xxd -i fs.img > kernel/ramdisk.h
 
 -include kernel/*.d user/*.d
