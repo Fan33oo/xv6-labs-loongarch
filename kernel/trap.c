@@ -78,6 +78,13 @@ usertrap(void)
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2)
+    if (p->alarm_handler != 0) {
+      p->ticks_passed++;
+      if (p->ticks_passed % p->alarm_interval == 0) {
+        r_csr_era = p->alarm_handler;
+      }
+    }
+
     yield();
 
   usertrapret();

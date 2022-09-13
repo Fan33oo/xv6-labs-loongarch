@@ -9,7 +9,7 @@
 #include "kernel/param.h"
 #include "kernel/types.h"
 #include "kernel/stat.h"
-#include "kernel/riscv.h"
+#include "kernel/loongarch.h"
 #include "user/user.h"
 
 void test0();
