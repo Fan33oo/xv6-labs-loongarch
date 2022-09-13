@@ -15,6 +15,14 @@
 // this core's hartid (core number), the index into cpus[].
 
 static inline uint64
+r_fp()
+{
+  uint64 x;
+  asm volatile("addi.d %0, $fp, 0" : "=r" (x) );
+  return x;
+}
+
+static inline uint64
 r_sp()
 {
   uint64 x;
