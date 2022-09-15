@@ -12,10 +12,10 @@ r = Runner(save("xv6.out"))
 #     # just a simple sanity check, will be graded manually
 #     check_answers("answers-traps.txt")
 
-BACKTRACE_RE = r"^(0x000000008[0-9a-f]+)"
+BACKTRACE_RE = r"^(0x9000000000[0-9a-f]+)"
 
 def addr2line():
-    for f in ['riscv64-unknown-elf-addr2line', 'riscv64-linux-gnu-addr2line', 'addr2line', ]:
+    for f in ['loongarch64-unknown-linux-gnu-addr2line', ]:
         try:
             devnull = open(os.devnull)
             subprocess.Popen([f], stdout=devnull, stderr=devnull).communicate()
