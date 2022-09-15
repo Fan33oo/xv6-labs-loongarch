@@ -99,18 +99,19 @@ sys_uptime(void)
 uint64
 sys_sigalarm(void)
 {
-  int ticks;
-  if (argint(0, &ticks) < 0)
+  if (argint(0, &myproc()->alarm_interval) < 0)
     return -1;
-  void (*handler)(void);
-  if ((argaddr(1, handler)) < 0)
+
+  if (argaddr(1, &myproc()->alarm_handler) < 0)
     return -1;
-  
+    
   return 0;
 }
 
 uint64
 sys_sigreturn(void)
 {
+  memmove(myproc()->trapframe, myproc()->trapfram_alarm, 512);
+  myproc()->ticks_passed = 0;
   return 0;
 }

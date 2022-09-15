@@ -92,4 +92,6 @@ struct proc
   int alarm_interval;
   uint64 alarm_handler;
   uint64 ticks_passed;
+
+  char trapfram_alarm[512];
 };
