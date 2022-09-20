@@ -69,6 +69,14 @@ r_csr_era()
   return x;
 }
 
+static inline uint64
+r_csr_badv()
+{
+  uint64 x;
+  asm volatile("csrrd %0, 0x7" : "=r" (x) );
+  return x;
+}
+
 static inline void 
 w_csr_era(uint64 x)
 {
@@ -297,12 +305,14 @@ intr_off()
 #define PTE_NX (1UL << 62) //non executable
 #define PTE_NR (1L << 61) //non readable
 #define PTE_RPLV (1UL << 63) //restricted privilege level enable
+#define PTE_COW (1UL << 60)
 
 #define PAMASK          0xFFFFFFFFFUL << PGSHIFT
 #define PTE2PA(pte) (pte & PAMASK)
 // shift a physical address to the right place for a PTE.
 #define PA2PTE(pa) (((uint64)pa) & PAMASK)
-#define PTE_FLAGS(pte) ((pte) & 0xE0000000000001FFUL)
+#define PA2IDX(pa) ((((uint64)pa | DMWIN_MASK) - RAMBASE) / PGSIZE)
+#define PTE_FLAGS(pte) ((pte) & 0xF0000000000001FFUL)
 
 // extract the three 9-bit page table indices from a virtual address.
 #define PXMASK          0x1FF // 9 bits

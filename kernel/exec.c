@@ -149,10 +149,13 @@ loadseg(pagetable_t pagetable, uint64 va, struct inode *ip, uint offset, uint sz
 {
   uint i, n;
   uint64 pa;
-
+  printf("load tb %p\n", pagetable);
   for (i = 0; i < sz; i += PGSIZE)
   {
+    // if (cow_copy(pagetable, va + i) < 0)
+    //   return -1;
     pa = walkaddr(pagetable, va + i);
+    printf("loadseg pa %p\n", pa);
     if (pa == 0)
       panic("loadseg: address should exist");
     if (sz - i < PGSIZE)

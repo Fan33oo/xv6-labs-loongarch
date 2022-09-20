@@ -86,6 +86,9 @@ void            swtch(struct context*, struct context*);
 void*           kalloc(void);
 void            kfree(void *);
 void            kinit(void);
+uint            get_ref_cnt(uint64);
+void            inc_ref_cnt(uint64);
+void            dec_ref_cnt(uint64);
 
 // vm.c
 void            tlbinit(void);
@@ -104,6 +107,7 @@ uint64          walkaddr(pagetable_t, uint64);
 int             copyout(pagetable_t, uint64, char *, uint64);
 int             copyin(pagetable_t, char *, uint64, uint64);
 int             copyinstr(pagetable_t, char *, uint64, uint64);
+int             cow_copy(pagetable_t, uint64);
 
 // apic.c
 void            apic_init(void);
