@@ -85,6 +85,7 @@ int exec(char *path, char **argv)
   // Push argument strings, prepare rest of stack in ustack.
   for (argc = 0; argv[argc]; argc++)
   {
+    printf("push args\n");
     if (argc >= MAXARG)
       goto bad;
     sp -= strlen(argv[argc]) + 1;
@@ -149,13 +150,13 @@ loadseg(pagetable_t pagetable, uint64 va, struct inode *ip, uint offset, uint sz
 {
   uint i, n;
   uint64 pa;
-  printf("load tb %p\n", pagetable);
   for (i = 0; i < sz; i += PGSIZE)
   {
-    // if (cow_copy(pagetable, va + i) < 0)
-    //   return -1;
+    printf("loadseg to pgtb %p\n", pagetable);
+    if (cow_copy(pagetable, va + i) < 0)
+      return -1;
     pa = walkaddr(pagetable, va + i);
-    printf("loadseg pa %p\n", pa);
+    printf("va %p pa %p\n", va+i, pa);
     if (pa == 0)
       panic("loadseg: address should exist");
     if (sz - i < PGSIZE)

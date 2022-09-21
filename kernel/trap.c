@@ -71,7 +71,7 @@ usertrap(void)
     printf("CODE:%d\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16));
     uint64 va = r_csr_badv();
     printf("%p\n", va);
-    printf("trap tb%p\n", p->pagetable);
+    printf("trap tb %p\n", p->pagetable);
     if (cow_copy(p->pagetable, va) != 0) {
       printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
       printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
