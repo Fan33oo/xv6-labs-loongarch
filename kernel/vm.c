@@ -105,8 +105,8 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, uint64 perm)
   for(;;){
     if((pte = walk(pagetable, a, 1)) == 0)
       return -1;
-    if(*pte & PTE_V)
-      panic("mappages: remap");
+    // if(*pte & PTE_V)
+    //   panic("mappages: remap");
     *pte = PA2PTE(pa) | perm | PTE_V;
     if(a == last)
       break;
@@ -267,13 +267,15 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     if((*pte & PTE_V) == 0)
       panic("uvmcopy: page not present");
     pa = PTE2PA(*pte);
-    printf("va %p pa %p\n", i, pa);
+    printf("va %p pa %p  ", i, pa);
     if (*pte & PTE_W) {
+      printf("w\n");
       *pte &= (~PTE_W);
       *pte |= PTE_COW;
       flags = PTE_FLAGS(*pte);
     }
     else {
+      printf("!w\n");
       flags = PTE_FLAGS(*pte);
     }
     if(mappages(new, i, PGSIZE, pa, flags) != 0){
@@ -416,12 +418,12 @@ cow_copy(pagetable_t pagetable, uint64 va)
   uint64 pa = PTE2PA(*pte);
   printf("cow! pa %p\n", pa);
   pa |= DMWIN_MASK;
-  if(((uint64)pa % PGSIZE) != 0 || (uint64)pa < RAMBASE || (uint64)pa >= RAMSTOP)
+  if((uint64)pa < RAMBASE || (uint64)pa >= RAMSTOP)
     panic("cow copy");
 
   if (get_ref_cnt(pa) == 1) {
     printf("=\n");
-    *pte &= ~PTE_COW;
+    *pte &= (~PTE_COW);
     *pte |= PTE_W;
     return 0;
   }
@@ -430,7 +432,7 @@ cow_copy(pagetable_t pagetable, uint64 va)
     char *mem = kalloc();
     if (mem == 0)
       return -1;
-    uint64 flags = ((PTE_FLAGS(*pte) & ~PTE_COW) | PTE_W);
+    uint64 flags = ((PTE_FLAGS(*pte) & (~PTE_COW)) | PTE_W);
     memmove((void*)mem, (void*)(pa | DMWIN_MASK), PGSIZE);
     if (mappages(pagetable, va, PGSIZE, (uint64)mem, flags) != 0) {
       kfree(mem);

@@ -85,6 +85,7 @@ kfree(void *pa)
   if (get_ref_cnt((uint64)pa) > 0)
     return;
 
+  // printf("kreallyfree pa %p\n", pa);
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
 
