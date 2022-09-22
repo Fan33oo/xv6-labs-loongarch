@@ -70,6 +70,8 @@ threetest()
     printf("fork failed\n");
     exit(-1);
   }
+
+  
   if(pid1 == 0){
     pid2 = fork();
     if(pid2 < 0){

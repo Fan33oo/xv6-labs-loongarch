@@ -169,6 +169,7 @@ main(void)
       printf("fork ok\n");
       runcmd(parsecmd(buf));
     }
+    // printf("old pid\n");
     wait(0);
   }
   exit(0);

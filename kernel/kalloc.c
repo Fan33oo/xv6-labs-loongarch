@@ -55,6 +55,7 @@ dec_ref_cnt(uint64 pa)
 void
 kinit()
 {
+  initlock(&ref_cnt.lock, "ref_cnt");
   initlock(&kmem.lock, "kmem");
   initlock(&ref_cnt.lock, "ref_cnt");
   freerange((void*)RAMBASE, (void*)RAMSTOP);

@@ -269,7 +269,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     pa = PTE2PA(*pte);
     printf("va %p pa %p  ", i, pa);
     if (*pte & PTE_W) {
-      printf("w\n");
+      printf(" w\n");
       *pte &= (~PTE_W);
       *pte |= PTE_COW;
       flags = PTE_FLAGS(*pte);
@@ -310,6 +310,7 @@ int
 copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 {
   uint64 n, va0, pa0;
+
 
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
@@ -427,7 +428,7 @@ cow_copy(pagetable_t pagetable, uint64 va)
     *pte |= PTE_W;
     return 0;
   }
-  else if (get_ref_cnt(pa) > 1){
+  else if (get_ref_cnt(pa) > 1) {
     printf(">\n");
     char *mem = kalloc();
     if (mem == 0)
