@@ -101,6 +101,7 @@ sys_pgaccess(void)
     if (*pte & PTE_A) {
       temp |= (1 << i);
       printf("%d\n", i);
+      *pte &= ~PTE_A;
     }
   }
   copyout(pt, buf, (char *)&temp, sizeof(temp));

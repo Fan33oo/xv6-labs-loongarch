@@ -15,6 +15,16 @@ handle_tlbr:
 	addi.d  $t0, $t0, -1
 	ldpte	$t0, 0
 	ldpte	$t0, 1
+
+	; csrrd 	$t0, LOONGARCH_CSR_TLBELO0
+	; ori     $t0, $t0, 1
+	; xori	$t0, $t0, 1 
+	; csrwr	$t0, LOONGARCH_CSR_TLBELO0
+	
+	; csrrd 	$t0, LOONGARCH_CSR_TLBELO1
+	; ori 	$t0, $t0, 1
+	; xori	$t0, $t0, 1 
+	; csrwr	$t0, LOONGARCH_CSR_TLBELO1
 	tlbfill
 
 	csrrd   $t1, LOONGARCH_CSR_TLBRBADV
@@ -30,7 +40,9 @@ handle_tlbr:
 	slli.d	$t2, $t2, 60
 	or		$t1, $t2, $t1
 	st.d  	$t1, $t3, 0
-	 
 
 	csrrd	$t0, LOONGARCH_CSR_TLBRSAVE
 	ertn
+
+
+	 

@@ -65,13 +65,26 @@ usertrap(void)
     intr_on();
 
     syscall();
-  } else if((which_dev = devintr()) != 0){
+  } 
+  else if((which_dev = devintr()) != 0){
     // ok
-  } else {
-    printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
-    printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
-    p->killed = 1;
-  }
+  } 
+  else {
+    uint64 badv = r_csr_badv();
+    pte_t *pte = walk(p->pagetable, badv, 0);
+    if (*pte & PTE_V) {
+      printf("!!");
+      *pte |= PTE_A;
+      w_csr_tlbelo0(*pte);
+      w_csr_tlbelo1(*pte);
+      tlbfill();
+    }
+    else {
+      printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
+      printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
+      p->killed = 1;
+    }
+  } 
 
   if(p->killed)
     exit(-1);
