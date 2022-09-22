@@ -5,7 +5,7 @@ U=user
 MEM=4G
 # 1-4
 CPUS=2
-BIOS=./qemu-loongarch64-runenv/loongarch_bios_0310_debug.bin
+BIOS=./qemu-loongarch64-runenv/loongarch_bios_0310.bin
 KERNEL=./kernel/kernel
 QEMU=qemu-system-loongarch64
 CMDLINE=root=/dev/ram console=ttyS0,115200 rdinit=/init
