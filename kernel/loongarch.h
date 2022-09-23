@@ -145,15 +145,15 @@ r_csr_tlbrelo1()
 }
 
 static inline void
-w_csr_tlbelo0(uint64 x)
+w_csr_tlbrelo0(uint64 x)
 {
-  asm volatile("csrwr %0, 0x12" : : "r" (x) );
+  asm volatile("csrwr %0, 0x8c" : : "r" (x) );
 }
 
 static inline void
-w_csr_tlbelo1(uint64 x)
+w_csr_tlbrelo1(uint64 x)
 {
-  asm volatile("csrwr %0, 0x13" : : "r" (x) );
+  asm volatile("csrwr %0, 0x8d" : : "r" (x) );
 }
 
 static inline void
@@ -172,6 +172,12 @@ static inline void
 w_csr_tlbrentry(uint64 x)
 {
   asm volatile("csrwr %0, 0x88" : : "r" (x) );
+}
+
+static inline void
+w_csr_tlbrera(uint64 x)
+{
+  asm volatile("csrwr %0, 0x8A" : : "r" (x) );
 }
 
 static inline void

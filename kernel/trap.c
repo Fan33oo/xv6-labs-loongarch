@@ -67,23 +67,39 @@ usertrap(void)
     syscall();
   } 
   else if((which_dev = devintr()) != 0){
-    // ok
-  } 
-  else {
+    // devintr
     uint64 badv = r_csr_badv();
+    printf("%p\n", badv);
     pte_t *pte = walk(p->pagetable, badv, 0);
     if (*pte & PTE_V) {
-      printf("!!");
       *pte |= PTE_A;
-      w_csr_tlbelo0(*pte);
-      w_csr_tlbelo1(*pte);
-      tlbfill();
+      w_csr_tlbrera(1);
+      w_csr_tlbrehi((badv & ((0xFFFFFFFFF) << 13)) | 12);
+      if (badv & (1 << 12)) {
+        printf("1");
+        w_csr_tlbrelo1(*pte);
+        w_csr_tlbrelo0(0);
+        tlbfill();
+      }
+      else {
+        printf("0");
+        w_csr_tlbrelo0(*pte);
+        w_csr_tlbrelo1(0);    
+        tlbfill();
+      }
+      w_csr_tlbrera(0);
+      printf("end");
     }
     else {
       printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
       printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
       p->killed = 1;
     }
+  } 
+  else {
+    printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
+    printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
+    p->killed = 1;
   } 
 
   if(p->killed)

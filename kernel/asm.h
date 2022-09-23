@@ -17,6 +17,6 @@
 #define LOONGARCH_CSR_TLBRBADV		0x89	/* TLB refill badvaddr */
 #define LOONGARCH_CSR_TLBRSAVE		0x8b	/* KScratch for TLB refill exception */
 
-#define LOONGARCH_CSR_TLBELO0       0x12
-#define LOONGARCH_CSR_TLBELO1       0x13
+#define LOONGARCH_CSR_TLBRELO0       0x8C
+#define LOONGARCH_CSR_TLBRELO1       0x8D
 /* Direct Map window 0/1 */
