@@ -71,24 +71,25 @@ usertrap(void)
     uint64 badv = r_csr_badv();
     printf("%p\n", badv);
     pte_t *pte = walk(p->pagetable, badv, 0);
+    printf("%p\n", *pte);
+    uint64 ehi = r_csr_ehi();
     if (*pte & PTE_V) {
       *pte |= PTE_A;
-      w_csr_tlbrera(1);
-      w_csr_tlbrehi((badv & ((0xFFFFFFFFF) << 13)) | 12);
+      w_csr_tlbrera(0);
+      // uint64 rera = r_csr_tlbrera();
+      // w_csr_tlbrehi((badv & ((0xFFFFFFFFF) << 13)) | 12);
       if (badv & (1 << 12)) {
-        printf("1");
-        w_csr_tlbrelo1(*pte);
-        w_csr_tlbrelo0(0);
+        printf("1\n");
+        w_csr_tlbelo1(*pte);
+        w_csr_tlbelo0(*pte);
         tlbfill();
       }
       else {
-        printf("0");
-        w_csr_tlbrelo0(*pte);
-        w_csr_tlbrelo1(0);    
+        printf("0\n");
+        w_csr_tlbelo0(*pte);
+        w_csr_tlbelo1(*pte);    
         tlbfill();
       }
-      w_csr_tlbrera(0);
-      printf("end");
     }
     else {
       printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);

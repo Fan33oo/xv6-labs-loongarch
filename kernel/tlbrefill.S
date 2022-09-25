@@ -4,9 +4,9 @@
 .globl handle_tlbr
 .align 0x4
 handle_tlbr:
-/*
-	csrwr	$t0, LOONGARCH_CSR_TLBRSAVE
 
+	csrwr	$t0, LOONGARCH_CSR_TLBRSAVE
+/*
 	csrrd	$t0, LOONGARCH_CSR_PGD
 	lddir	$t0, $t0, 3
 	addi.d  $t0, $t0, -1
@@ -20,16 +20,14 @@ handle_tlbr:
 	csrrd 	$t0, LOONGARCH_CSR_TLBRELO0
 	ori     $t0, $t0, 1
 	xori	$t0, $t0, 1 
-	csrwr	$r0, LOONGARCH_CSR_TLBRELO0
+	csrwr	$t0, LOONGARCH_CSR_TLBRELO0
 
 	csrrd 	$t0, LOONGARCH_CSR_TLBRELO1
 	ori 	$t0, $t0, 1
 	xori	$t0, $t0, 1
-	csrwr	$r0, LOONGARCH_CSR_TLBRELO1
-
+	csrwr	$t0, LOONGARCH_CSR_TLBRELO1
+*/
 	tlbfill
 
 	csrrd	$t0, LOONGARCH_CSR_TLBRSAVE
-	*/
-	tlbfill
 	ertn
