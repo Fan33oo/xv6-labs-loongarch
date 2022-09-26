@@ -70,28 +70,33 @@ usertrap(void)
     // devintr
   } 
   else {
-    printf("usertrap(): trapcause %x pid=%d\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16), p->pid);
     uint64 badv = r_csr_badv();
-    printf("%p\n", badv);
-    pte_t *pte = walk(p->pagetable, badv, 0);
-    if (*pte & PTE_V) {
-      *pte |= PTE_A;
-      w_csr_tlbrera(0);
-      if (badv & (1 << 12)) {
-        w_csr_tlbelo1(*pte);
-        w_csr_tlbelo0(0);
-        tlbfill();
-      }
-      else {
-        w_csr_tlbelo0(*pte);
-        w_csr_tlbelo1(0);    
-        tlbfill();
-      }
-    }
-    else {
+    if (badv >= MAXVA) {
       printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
       printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
-      p->killed = 1;
+      p->killed = 1;      
+    }
+    else {
+      pte_t *pte = walk(p->pagetable, badv, 0);
+      if (*pte & PTE_V) {
+        *pte |= PTE_A;
+        w_csr_tlbrera(0);
+        if (badv & (1 << 12)) {
+          w_csr_tlbelo1(*pte);
+          w_csr_tlbelo0(0);
+          tlbfill();
+        }
+        else {
+          w_csr_tlbelo0(*pte);
+          w_csr_tlbelo1(0);    
+          tlbfill();
+        }
+      }
+      else {
+        printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
+        printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
+        p->killed = 1;
+      }
     }
   } 
 
@@ -175,7 +180,7 @@ kerneltrap()
       }
       else {
         w_csr_tlbelo0(*pte);
-        w_csr_tlbelo1(0);    
+        w_csr_tlbelo1(0);  
         tlbfill();
       }
     }
