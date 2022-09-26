@@ -283,6 +283,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     }
     inc_ref_cnt(pa);
   }
+  flush_tlb();
   return 0;
 
  err:
@@ -425,6 +426,7 @@ cow_copy(pagetable_t pagetable, uint64 va)
     printf("=\n");
     *pte &= (~PTE_COW);
     *pte |= PTE_W;
+    flush_tlb();
     return 0;
   }
   else if (get_ref_cnt(pa) > 1){
@@ -440,6 +442,7 @@ cow_copy(pagetable_t pagetable, uint64 va)
     }
     else {
       dec_ref_cnt(pa);
+      flush_tlb();
       return 0;
     }
   }
