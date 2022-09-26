@@ -524,8 +524,6 @@ forkret(void)
   // Still holding p->lock from scheduler.
   release(&myproc()->lock);
 
-
-
   if (first) {
     // File system initialization must be run in the context of a
     // regular process (e.g., because it calls sleep), and thus cannot

@@ -27,11 +27,12 @@
 // for use by user pages
 // from physical address 0x90000000 to PHYSTOP.
 #define RAMBASE (0x90000000UL | DMWIN_MASK)
-#define RAMSTOP (RAMBASE + 128*1024*1024)
+#define RAMSTOP (RAMEND - NPROC * PGSIZE * 2)
+#define RAMEND  (RAMBASE + 128*1024*1024)
 
 // map kernel stacks beneath the trampframe,
 // each surrounded by invalid guard pages.
-#define KSTACK(p) (TRAPFRAME - ((p)+1)* 2*PGSIZE)
+#define KSTACK(p) (RAMEND - ((p)+1)* 2*PGSIZE)
 
 // User memory layout.
 // Address zero first:

@@ -7,6 +7,9 @@ handle_tlbr:
 
 	csrwr	$t0, LOONGARCH_CSR_TLBRSAVE
 
+	csrrd	$t0, LOONGARCH_CSR_PRMD
+
+
 	csrrd	$t0, LOONGARCH_CSR_PGD
 	lddir	$t0, $t0, 3
 	addi.d  $t0, $t0, -1

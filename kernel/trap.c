@@ -67,38 +67,32 @@ usertrap(void)
     syscall();
   } 
   else if((which_dev = devintr()) != 0){
-    printf("dev\n");
-    // // devintr
-    // printf("usertrap(): unexpected trapcause %x pid=%d\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16), p->pid);
-    // uint64 badv = r_csr_badv();
-    // printf("%p\n", badv);
-    // pte_t *pte = walk(p->pagetable, badv, 0);
-    // if (*pte & PTE_V) {
-    //   *pte |= PTE_A;
-    //   // w_csr_tlbrera(0);
-    //   // uint64 rera = r_csr_tlbrera();
-    //   // w_csr_tlbrehi((badv & ((0xFFFFFFFFF) << 13)) | 12);
-    //   // if (badv & (1 << 12)) {
-    //   //   w_csr_tlbelo1(*pte);
-    //   //   w_csr_tlbelo0(0);
-    //   //   tlbfill();
-    //   // }
-    //   // else {
-    //   //   w_csr_tlbelo0(*pte);
-    //   //   w_csr_tlbelo1(0);    
-    //   //   tlbfill();
-    //   // }
-    // }
-    // else {
-    //   printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
-    //   printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
-    //   p->killed = 1;
-    // }
+    // devintr
   } 
   else {
-    printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
-    printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
-    p->killed = 1;
+    printf("usertrap(): trapcause %x pid=%d\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16), p->pid);
+    uint64 badv = r_csr_badv();
+    printf("%p\n", badv);
+    pte_t *pte = walk(p->pagetable, badv, 0);
+    if (*pte & PTE_V) {
+      *pte |= PTE_A;
+      w_csr_tlbrera(0);
+      if (badv & (1 << 12)) {
+        w_csr_tlbelo1(*pte);
+        w_csr_tlbelo0(0);
+        tlbfill();
+      }
+      else {
+        w_csr_tlbelo0(*pte);
+        w_csr_tlbelo1(0);    
+        tlbfill();
+      }
+    }
+    else {
+      printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
+      printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
+      p->killed = 1;
+    }
   } 
 
   if(p->killed)
@@ -167,9 +161,29 @@ kerneltrap()
     panic("kerneltrap: interrupts enabled");
 
   if((which_dev = devintr()) == 0){
-    printf("estat %x\n", r_csr_estat());
-    printf("era=%p eentry=%p\n", r_csr_era(), r_csr_eentry());
-    panic("kerneltrap");
+    uint64 badv = r_csr_badv();
+    printf("%p\n", badv);
+    pte_t *pte = walk(myproc()->pagetable, badv, 0);
+    if (*pte & PTE_V) {
+      printf("valid\n");
+      *pte |= PTE_A;
+      w_csr_tlbrera(0);
+      if (badv & (1 << 12)) {
+        w_csr_tlbelo1(*pte);
+        w_csr_tlbelo0(0);
+        tlbfill();
+      }
+      else {
+        w_csr_tlbelo0(*pte);
+        w_csr_tlbelo1(0);    
+        tlbfill();
+      }
+    }
+    else {
+      printf("estat %x\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16));
+      printf("era=%p eentry=%p\n", r_csr_era(), r_csr_eentry());
+      panic("kerneltrap");
+    }
   }
 
   // give up the CPU if this is a timer interrupt.

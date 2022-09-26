@@ -18,13 +18,13 @@ tlbinit(void)
 void
 vminit(void)
 {
-  pagetable_t kpgtbl;
+  // pagetable_t kpgtbl;
 
-  kpgtbl = (pagetable_t) kalloc();
-  memset(kpgtbl, 0, PGSIZE);
-  proc_mapstacks(kpgtbl);
+  // kpgtbl = (pagetable_t) kalloc();
+  // memset(kpgtbl, 0, PGSIZE);
+  // proc_mapstacks(kpgtbl);
 
-  w_csr_pgdl((uint64)kpgtbl);
+  // w_csr_pgdl((uint64)kpgtbl);
   tlbinit();
 
   w_csr_pwcl((PTEWIDTH << 30)|(DIR2WIDTH << 25)|(DIR2BASE << 20)|(DIR1WIDTH << 15)|(DIR1BASE << 10)|(PTWIDTH << 5)|(PTBASE << 0));
