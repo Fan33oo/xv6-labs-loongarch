@@ -144,6 +144,38 @@ r_csr_tlbrelo1()
   return x;
 }
 
+static inline uint64
+r_csr_tlbrehi()
+{
+  uint64 x;
+  asm volatile("csrrd %0, 0x8e" : "=r" (x) );
+  return x;
+}
+
+static inline uint64
+r_csr_tlbelo0()
+{
+  uint64 x;
+  asm volatile("csrrd %0, 0x12" : "=r" (x) );
+  return x;
+}
+
+static inline uint64
+r_csr_tlbelo1()
+{
+  uint64 x;
+  asm volatile("csrrd %0, 0x13" : "=r" (x) );
+  return x;
+}
+
+static inline uint64
+r_csr_tlbehi()
+{
+  uint64 x;
+  asm volatile("csrrd %0, 0x11" : "=r" (x) );
+  return x;
+}
+
 static inline void
 w_csr_tlbrelo0(uint64 x)
 {
