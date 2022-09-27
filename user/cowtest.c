@@ -5,6 +5,8 @@
 #include "kernel/types.h"
 #include "kernel/memlayout.h"
 #include "user/user.h"
+#include "kernel/param.h"
+#include "kernel/loongarch.h"
 
 // allocate more than half of physical memory,
 // then fork. this will fail in the default

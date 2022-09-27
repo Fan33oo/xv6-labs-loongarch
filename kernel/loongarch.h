@@ -217,6 +217,12 @@ w_csr_pgdh(uint64 x)
   asm volatile("csrwr %0, 0x1a" : : "r" (x) );
 }
 
+static inline void
+flush_tlb()
+{
+  asm volatile("invtlb 0x0,$zero,$zero");
+}
+
 #define PTBASE  12U
 #define PTWIDTH  9U
 #define DIR1BASE  21U 
