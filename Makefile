@@ -127,14 +127,18 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
-	$U/_sleep\
-	$U/_pingpong\
-	$U/_primes\
-	$U/_find\
-	$U/_xargs\
+	$U/_uthread\
 
-fs.img: mkfs/mkfs README.md $(UPROGS) user/xargstest.sh
-	mkfs/mkfs fs.img README.md $(UPROGS) user/xargstest.sh
+$U/uthread_switch.o : $U/uthread_switch.S
+	$(CC) $(CFLAGS) -c -o $U/uthread_switch.o $U/uthread_switch.S
+
+$U/_uthread: $U/uthread.o $U/uthread_switch.o $(ULIB)
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $U/_uthread $U/uthread.o $U/uthread_switch.o $(ULIB)
+	$(OBJDUMP) -S $U/_uthread > $U/uthread.asm
+
+
+fs.img: mkfs/mkfs README.md $(UPROGS)
+	mkfs/mkfs fs.img README.md $(UPROGS)
 	xxd -i fs.img > kernel/ramdisk.h
 
 -include kernel/*.d user/*.d
