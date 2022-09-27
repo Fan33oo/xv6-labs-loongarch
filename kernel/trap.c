@@ -16,6 +16,7 @@ void handle_excep();
 void handle_tlbr();
 void handle_merr();
 void userret(uint64, uint64);
+void tlb_refill(uint64);
 
 extern int devintr();
 
@@ -79,20 +80,7 @@ usertrap(void)
     else {
       pte_t *pte = walk(p->pagetable, badv, 0);
       if (*pte & PTE_V) {
-        *pte |= PTE_A;
-        w_csr_tlbrera(0);
-        w_csr_tlbelo0(0);
-        w_csr_tlbelo1(0);
-        w_csr_tlbidx(0);      
-        tlbsrch();
-        tlbrd();
-        if (badv & (1 << 12)) {
-          w_csr_tlbelo1(r_csr_tlbelo1() | 1);
-        }
-        else {
-          w_csr_tlbelo0(r_csr_tlbelo0() | 1);  
-        }
-        tlbfill();
+        tlb_refill(badv);
       }
       else {
         printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
@@ -100,7 +88,7 @@ usertrap(void)
         p->killed = 1;
       }
     }
-  } 
+  }
 
   if(p->killed)
     exit(-1);
@@ -150,7 +138,9 @@ usertrapret(void)
   // jump to uservec.S at the top of memory, which 
   // switches to the user page table, restores user registers,
   // and switches to user mode with ertn.
-  userret(TRAPFRAME, pgdl);
+  uint64 trapframe_pa = PTE2PA(*walk(p->pagetable, TRAPFRAME, 0));
+  // printf("trapframe_pa %p\n", trapframe_pa);
+  userret(trapframe_pa | DMWIN_MASK, pgdl);
 }
 
 // interrupts and exceptions from kernel code go here via kernelvec,
@@ -172,41 +162,7 @@ kerneltrap()
         (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x2) ||
         (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x3)) {
       uint64 badv = r_csr_badv();
-      printf("badv %p\n", badv);
-      printf("ehi %p\n", r_csr_tlbehi());
-      pte_t *pte = walk(myproc()->pagetable, badv, 0);
-      if (*pte & PTE_V) {
-        printf("pte %p\n", *pte);
-        *pte |= PTE_A;
-        w_csr_tlbrera(0);
-        w_csr_tlbelo0(0);
-        w_csr_tlbelo1(0);
-        w_csr_tlbidx(0);
-        w_csr_asid(0);
-        tlbsrch();
-        tlbrd();
-        if (!(r_csr_tlbidx() & (1 << 31))) {
-          if (badv & (1 << 12)) {
-            w_csr_tlbelo1(*pte);
-            printf("elo %p\n", r_csr_tlbelo1());
-          }
-          else {
-            w_csr_tlbelo0(*pte);
-            printf("elo %p\n", r_csr_tlbelo0());     
-          }
-          w_csr_tlbidx(r_csr_tlbidx() | (12 << 24));
-          tlbfill();
-        }
-        else {
-          panic("kernel trap");
-        }
-      }
-    }
-    else {
-      printf("estat %x\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16));
-      printf("era=%p eentry=%p\n", r_csr_era(), r_csr_eentry());
-      panic("kerneltrap");
-    }
+      tlb_refill(badv);
   }
 
   // give up the CPU if this is a timer interrupt.
@@ -217,6 +173,7 @@ kerneltrap()
   // so restore trap registers for use by kernelvec.S's instruction.
   w_csr_era(era);
   w_csr_prmd(prmd);
+  }
 }
 
 void 
@@ -279,5 +236,38 @@ devintr()
     return 2;
   } else {
     return 0;
+  }
+}
+
+void
+tlb_refill(uint64 badv)
+{
+  // printf("badv %p\n", badv);
+  // printf("ehi %p\n", r_csr_tlbehi());
+  pte_t *pte = walk(myproc()->pagetable, badv, 0);
+  if (*pte & PTE_V) {
+    // printf("pte %p\n", *pte);
+    *pte |= PTE_A;
+    w_csr_tlbrera(0);
+    w_csr_tlbelo0(0);
+    w_csr_tlbelo1(0);
+    w_csr_tlbidx(0);
+    w_csr_asid(0);
+    tlbsrch();
+    tlbrd();
+    if (!(r_csr_tlbidx() & (1 << 31))) {
+      if (badv & (1 << 12)) {
+        w_csr_tlbelo1(*pte);
+      }
+      else {
+        w_csr_tlbelo0(*pte);
+      }
+      printf("elo %p\n", r_csr_tlbelo1());
+      printf("elo %p\n", r_csr_tlbelo0());
+      tlbfill();
+    }
+    else {
+      panic("tlb_refill()");
+    }
   }
 }
