@@ -81,16 +81,18 @@ usertrap(void)
       if (*pte & PTE_V) {
         *pte |= PTE_A;
         w_csr_tlbrera(0);
+        w_csr_tlbelo0(0);
+        w_csr_tlbelo1(0);
+        w_csr_tlbidx(0);      
+        tlbsrch();
+        tlbrd();
         if (badv & (1 << 12)) {
-          w_csr_tlbelo1(*pte);
-          w_csr_tlbelo0(0);
-          tlbfill();
+          w_csr_tlbelo1(r_csr_tlbelo1() | 1);
         }
         else {
-          w_csr_tlbelo0(*pte);
-          w_csr_tlbelo1(0);    
-          tlbfill();
+          w_csr_tlbelo0(r_csr_tlbelo0() | 1);  
         }
+        tlbfill();
       }
       else {
         printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
@@ -166,22 +168,38 @@ kerneltrap()
     panic("kerneltrap: interrupts enabled");
 
   if((which_dev = devintr()) == 0){
-    uint64 badv = r_csr_badv();
-    printf("%p\n", badv);
-    pte_t *pte = walk(myproc()->pagetable, badv, 0);
-    if (*pte & PTE_V) {
-      printf("valid\n");
-      *pte |= PTE_A;
-      w_csr_tlbrera(0);
-      if (badv & (1 << 12)) {
-        w_csr_tlbelo1(*pte);
+    if ((((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x1) ||
+        (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x2) ||
+        (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x3)) {
+      uint64 badv = r_csr_badv();
+      printf("badv %p\n", badv);
+      printf("ehi %p\n", r_csr_tlbehi());
+      pte_t *pte = walk(myproc()->pagetable, badv, 0);
+      if (*pte & PTE_V) {
+        printf("pte %p\n", *pte);
+        *pte |= PTE_A;
+        w_csr_tlbrera(0);
         w_csr_tlbelo0(0);
-        tlbfill();
-      }
-      else {
-        w_csr_tlbelo0(*pte);
-        w_csr_tlbelo1(0);  
-        tlbfill();
+        w_csr_tlbelo1(0);
+        w_csr_tlbidx(0);
+        w_csr_asid(0);
+        tlbsrch();
+        tlbrd();
+        if (!(r_csr_tlbidx() & (1 << 31))) {
+          if (badv & (1 << 12)) {
+            w_csr_tlbelo1(*pte);
+            printf("elo %p\n", r_csr_tlbelo1());
+          }
+          else {
+            w_csr_tlbelo0(*pte);
+            printf("elo %p\n", r_csr_tlbelo0());     
+          }
+          w_csr_tlbidx(r_csr_tlbidx() | (12 << 24));
+          tlbfill();
+        }
+        else {
+          panic("kernel trap");
+        }
       }
     }
     else {

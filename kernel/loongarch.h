@@ -200,11 +200,22 @@ w_csr_tlbelo1(uint64 x)
   asm volatile("csrwr %0, 0x13" : : "r" (x) );
 }
 
-
 static inline void
 tlbfill()
 {
   asm volatile("tlbfill");
+}
+
+static inline void
+tlbsrch()
+{
+  asm volatile("tlbsrch");
+}
+
+static inline void
+tlbrd()
+{
+  asm volatile("tlbrd");
 }
 
 static inline void
@@ -231,6 +242,20 @@ static inline void
 w_csr_tlbrera(uint64 x)
 {
   asm volatile("csrwr %0, 0x8a" : : "r" (x) );
+}
+
+static inline uint32
+r_csr_tlbidx()
+{
+  uint32 x;
+  asm volatile("csrwr %0, 0x10" : "=r" (x) );
+  return x;
+}
+
+static inline void
+w_csr_tlbidx(uint32 x)
+{
+  asm volatile("csrwr %0, 0x10" : : "r" (x) );
 }
 
 static inline void
