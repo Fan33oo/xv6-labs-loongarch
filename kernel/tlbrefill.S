@@ -18,17 +18,17 @@ handle_tlbr:
 	addi.d  $t0, $t0, -1
 	ldpte	$t0, 0
 	ldpte	$t0, 1
-
+/*
 	csrrd 	$t0, LOONGARCH_CSR_TLBRELO0
 	ori     $t0, $t0, 1
 	xori	$t0, $t0, 1 
-	csrwr	$t0, LOONGARCH_CSR_TLBRELO0
+	csrwr	$r0, LOONGARCH_CSR_TLBRELO0
 
 	csrrd 	$t0, LOONGARCH_CSR_TLBRELO1
 	ori 	$t0, $t0, 1
 	xori	$t0, $t0, 1
-	csrwr	$t0, LOONGARCH_CSR_TLBRELO1
-
+	csrwr	$r0, LOONGARCH_CSR_TLBRELO1
+*/
 	tlbfill
 
 	csrrd	$t0, LOONGARCH_CSR_TLBRSAVE

@@ -70,7 +70,9 @@ usertrap(void)
   else if((which_dev = devintr()) != 0){
     // devintr
   } 
-  else {
+  else if((((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x1) ||
+        (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x2) ||
+        (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x3)) {
     uint64 badv = r_csr_badv();
     if (badv >= MAXVA) {
       printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
@@ -88,6 +90,11 @@ usertrap(void)
         p->killed = 1;
       }
     }
+  }
+  else {
+    printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
+    printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
+    p->killed = 1;    
   }
 
   if(p->killed)
@@ -116,7 +123,7 @@ usertrapret(void)
 
   // set up trapframe values that uservec will need when
   // the process next re-enters the kernel.
-  p->trapframe->kernel_pgdl = r_csr_pgdl();         // kernel page table
+  // p->trapframe->kernel_pgdl = r_csr_pgdl();         // kernel page table
   p->trapframe->kernel_sp = p->kstack + PGSIZE; // process's kernel stack
   p->trapframe->kernel_hartid = r_tp();         // hartid for cpuid()
 
@@ -247,27 +254,46 @@ tlb_refill(uint64 badv)
   pte_t *pte = walk(myproc()->pagetable, badv, 0);
   if (*pte & PTE_V) {
     // printf("pte %p\n", *pte);
-    *pte |= PTE_A;
+    // *pte |= PTE_A;
+    // w_csr_tlbrera(0);
+    // w_csr_tlbelo0(0);
+    // w_csr_tlbelo1(0);
+    // w_csr_tlbidx(0);
+    // w_csr_asid(0);
+    // tlbsrch();
+    // tlbrd();
+    // if (!(r_csr_tlbidx() & (1 << 31))) {
+    //   if (badv & (1 << 12)) {
+    //     w_csr_tlbelo1(*pte);
+    //   }
+    //   else {
+    //     w_csr_tlbelo0(*pte);
+    //   }
+    //   printf("elo %p\n", r_csr_tlbelo1());
+    //   printf("elo %p\n", r_csr_tlbelo0());
+    //   tlbfill();
+    // }
+    // else {
+    //   panic("tlb_refill()");
+    // }
     w_csr_tlbrera(0);
-    w_csr_tlbelo0(0);
-    w_csr_tlbelo1(0);
     w_csr_tlbidx(0);
-    w_csr_asid(0);
+    printf("ehi : %p\n", r_csr_tlbehi());
     tlbsrch();
+    printf("idx after srch : %p\n", r_csr_tlbidx());
     tlbrd();
-    if (!(r_csr_tlbidx() & (1 << 31))) {
-      if (badv & (1 << 12)) {
-        w_csr_tlbelo1(*pte);
-      }
-      else {
-        w_csr_tlbelo0(*pte);
-      }
-      printf("elo %p\n", r_csr_tlbelo1());
-      printf("elo %p\n", r_csr_tlbelo0());
-      tlbfill();
-    }
-    else {
-      panic("tlb_refill()");
-    }
+    printf("idx after rd : %p\n", r_csr_tlbidx());
+    printf("elo0: %p\n", r_csr_tlbelo0());
+    printf("elo1: %p\n", r_csr_tlbelo1());
+    uint64 badv0 = badv & 0xFFFFFFFFFFFFEFFF;
+    uint64 badv1 = badv0 + 0x1000;
+    printf("badv0 %p\n", badv0);
+    printf("badv1 %p\n", badv1);
+    pte_t *pte0 = walk(myproc()->pagetable, badv0, 0);
+    pte_t *pte1 = walk(myproc()->pagetable, badv1, 0);
+    w_csr_tlbelo0(*pte0);
+    w_csr_tlbelo1(*pte1);
+
+    tlbfill();
   }
 }
