@@ -17,6 +17,7 @@ void handle_tlbr();
 void handle_merr();
 void userret(uint64, uint64);
 
+
 extern int devintr();
 
 void
@@ -40,6 +41,7 @@ trapinit(void)
 void
 usertrap(void)
 {
+  // printf("usertrap\n");
   int which_dev = 0;
 
   if((r_csr_prmd() & PRMD_PPLV) == 0)
@@ -76,12 +78,12 @@ usertrap(void)
     if (badv >= MAXVA) {
       printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
       printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
-      p->killed = 1;      
+      p->killed = 1;
     }
     else {
       pte_t *pte = walk(p->pagetable, badv, 0);
       if (*pte & PTE_V) {
-        printf("ok\n");
+        printf("badv %p\n", badv);
         *pte |= PTE_A;
       }
       else {
@@ -145,9 +147,8 @@ usertrapret(void)
   // jump to uservec.S at the top of memory, which 
   // switches to the user page table, restores user registers,
   // and switches to user mode with ertn.
-  uint64 trapframe_pa = PTE2PA(*walk(p->pagetable, TRAPFRAME, 0));
-  // printf("trapframe_pa %p\n", trapframe_pa);
-  userret(trapframe_pa | DMWIN_MASK, pgdl);
+
+  userret(TRAPFRAME, pgdl);
 }
 
 // interrupts and exceptions from kernel code go here via kernelvec,
@@ -173,6 +174,7 @@ kerneltrap()
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
     yield();
+
 
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's instruction.

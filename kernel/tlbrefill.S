@@ -6,8 +6,8 @@
 handle_tlbr:
 
 	csrwr	$t0, LOONGARCH_CSR_TLBRSAVE
-	csrwr	$t1, LOONGARCH_CSR_SAVE3
-	csrwr	$t2, LOONGARCH_CSR_SAVE4
+	csrwr	$t1, LOONGARCH_CSR_SAVE2
+	csrwr	$t2, LOONGARCH_CSR_SAVE3
 
 	csrrd	$t0, LOONGARCH_CSR_PGD
 	lddir	$t0, $t0, 3
@@ -52,6 +52,6 @@ tag4:
 	tlbfill
 
 	csrrd	$t0, LOONGARCH_CSR_TLBRSAVE
-	csrrd	$t1, LOONGARCH_CSR_SAVE3
-	csrrd 	$t2, LOONGARCH_CSR_SAVE4
+	csrrd	$t1, LOONGARCH_CSR_SAVE2
+	csrrd 	$t2, LOONGARCH_CSR_SAVE3
 	ertn

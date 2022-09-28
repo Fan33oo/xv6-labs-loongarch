@@ -4,6 +4,7 @@
         # to a page boundary.
         #
 #include "asm.h"
+
 .globl usertrap
 .globl uservec
 .align 4
@@ -23,6 +24,53 @@ uservec:
 	# swap a0 and SAVE
         # so that a0 is TRAPFRAME
         csrwr  $a0, LOONGARCH_CSR_SAVE1
+
+        // walk TRAPFRAME
+        csrwr  $t0, LOONGARCH_CSR_SAVE4
+        csrwr  $t1, LOONGARCH_CSR_SAVE5
+        csrwr  $t2, LOONGARCH_CSR_SAVE6
+        csrwr  $t3, LOONGARCH_CSR_SAVE7
+
+        and    $t3, $t3, $r0
+        addi.d $t3, $t3, 9
+        slli.d $t3, $t3, 60
+
+        and	$t2, $t2, $r0
+	addi.d  $t2, $t2, 8
+
+        csrrd  $t0, LOONGARCH_CSR_PGDL
+        srli.d $a0, $a0, 12
+        andi   $t1, $a0, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3
+        ld.d   $t0, $t1, 0
+
+        srli.d $a0, $a0, 9
+        andi   $t1, $a0, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3        
+        ld.d   $t0, $t1, 0
+
+        srli.d $a0, $a0, 9
+        andi   $t1, $a0, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3  
+        ld.d   $t0, $t1, 0
+
+        srli.d $a0, $a0, 9
+        andi   $t1, $a0, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3  
+        ld.d   $a0, $t1, 0
+
+        csrrd  $t0, LOONGARCH_CSR_SAVE4
+        csrrd  $t1, LOONGARCH_CSR_SAVE5
+        csrrd  $t2, LOONGARCH_CSR_SAVE6
+        csrrd  $t3, LOONGARCH_CSR_SAVE7
 
         # save the user registers in TRAPFRAME
         st.d   $ra, $a0, 0
@@ -86,10 +134,58 @@ userret:
         csrwr  $a1, LOONGARCH_CSR_PGDL
         invtlb 0x0,$zero,$zero
 
+        //walk TRAPFRAME
+        csrwr  $t0, LOONGARCH_CSR_SAVE4
+        csrwr  $t1, LOONGARCH_CSR_SAVE5
+        csrwr  $t2, LOONGARCH_CSR_SAVE6
+        csrwr  $t3, LOONGARCH_CSR_SAVE7
+
+        and    $t3, $t3, $r0
+        addi.d $t3, $t3, 9
+        slli.d $t3, $t3, 60
+
+        and	$t2, $t2, $r0
+	addi.d  $t2, $t2, 8
+
+        csrrd  $t0, LOONGARCH_CSR_PGDL
+        srli.d $a0, $a0, 12
+        andi   $t1, $a0, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3
+        ld.d   $t0, $t1, 0
+
+        srli.d $a0, $a0, 9
+        andi   $t1, $a0, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3        
+        ld.d   $t0, $t1, 0
+
+        srli.d $a0, $a0, 9
+        andi   $t1, $a0, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3  
+        ld.d   $t0, $t1, 0
+
+        srli.d $a0, $a0, 9
+        andi   $t1, $a0, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3  
+        ld.d   $a0, $t1, 0
+
+        csrrd  $t0, LOONGARCH_CSR_SAVE4
+        csrrd  $t1, LOONGARCH_CSR_SAVE5
+        csrrd  $t2, LOONGARCH_CSR_SAVE6
+        csrrd  $t3, LOONGARCH_CSR_SAVE7
+
         # put the saved user a0 in SAVE1, so we
         # can swap it with our a0 (TRAPFRAME) in the last step.
         ld.d   $t0, $a0, 24
         csrwr  $t0, LOONGARCH_CSR_SAVE1
+        
 
         # restore all but a0 from TRAPFRAME
         ld.d   $ra, $a0, 0
@@ -124,6 +220,16 @@ userret:
         ld.d   $s8, $a0, 240
 
 	# restore user a0, and save TRAPFRAME in SAVE1
+        csrwr   $t0, LOONGARCH_CSR_SAVE4
+        and	$a0, $a0, $r0
+	addi.d  $a0, $a0, 1
+        slli.d  $a0, $a0, 47
+        and	$t0, $t0, $r0
+	addi.d  $t0, $t0, 1
+        slli.d  $t0, $t0, 12
+        sub.d   $a0, $a0, $t0
+        csrrd   $t0, LOONGARCH_CSR_SAVE4
+
         csrwr  $a0, LOONGARCH_CSR_SAVE1
         
         # return to user mode and user pc.
