@@ -24,6 +24,63 @@ uservec:
         # so that a0 is TRAPFRAME
         csrwr  $a0, LOONGARCH_CSR_SAVE1
 
+        // walk TRAPFRAME
+        csrwr  $t0, LOONGARCH_CSR_SAVE4
+        csrwr  $t1, LOONGARCH_CSR_SAVE5
+        csrwr  $t2, LOONGARCH_CSR_SAVE6
+        csrwr  $t3, LOONGARCH_CSR_SAVE7
+        csrwr  $t4, LOONGARCH_CSR_SAVE8
+
+        and    $t3, $t3, $r0
+        addi.d $t3, $t3, 9
+        slli.d $t3, $t3, 60
+
+        and	$t2, $t2, $r0
+	addi.d  $t2, $t2, 8
+
+        csrrd  $t0, LOONGARCH_CSR_PGDL
+        srli.d $t4, $a0, 39
+        andi   $t1, $t4, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3
+        ld.d   $t0, $t1, 0
+        addi.d $t0, $t0, -1
+
+        srli.d $t4, $a0, 30
+        andi   $t1, $t4, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3        
+        ld.d   $t0, $t1, 0
+        addi.d $t0, $t0, -1
+
+        srli.d $t4, $a0, 21
+        andi   $t1, $t4, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3  
+        ld.d   $t0, $t1, 0
+        addi.d $t0, $t0, -1
+
+        srli.d $t4, $a0, 12
+        andi   $t1, $t4, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3  
+        ld.d   $a0, $t1, 0
+        srli.d $a0, $a0, 12
+        slli.d $a0, $a0, 12
+        slli.d $a0, $a0, 16
+        srli.d $a0, $a0, 16
+        or     $a0, $a0, $t3
+        
+        csrrd  $t0, LOONGARCH_CSR_SAVE4
+        csrrd  $t1, LOONGARCH_CSR_SAVE5
+        csrrd  $t2, LOONGARCH_CSR_SAVE6
+        csrrd  $t3, LOONGARCH_CSR_SAVE7
+        csrrd  $t4, LOONGARCH_CSR_SAVE8
+
         # save the user registers in TRAPFRAME
         st.d   $ra, $a0, 0
         st.d   $tp, $a0, 8
@@ -86,6 +143,63 @@ userret:
         csrwr  $a1, LOONGARCH_CSR_PGDL
         invtlb 0x0,$zero,$zero
 
+        // walk TRAPFRAME
+        csrwr  $t0, LOONGARCH_CSR_SAVE4
+        csrwr  $t1, LOONGARCH_CSR_SAVE5
+        csrwr  $t2, LOONGARCH_CSR_SAVE6
+        csrwr  $t3, LOONGARCH_CSR_SAVE7
+        csrwr  $t4, LOONGARCH_CSR_SAVE8
+
+        and    $t3, $t3, $r0
+        addi.d $t3, $t3, 9
+        slli.d $t3, $t3, 60
+
+        and	$t2, $t2, $r0
+	addi.d  $t2, $t2, 8
+
+        csrrd  $t0, LOONGARCH_CSR_PGDL
+        srli.d $t4, $a0, 39
+        andi   $t1, $t4, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3
+        ld.d   $t0, $t1, 0
+        addi.d $t0, $t0, -1
+
+        srli.d $t4, $a0, 30
+        andi   $t1, $t4, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3        
+        ld.d   $t0, $t1, 0
+        addi.d $t0, $t0, -1
+
+        srli.d $t4, $a0, 21
+        andi   $t1, $t4, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3  
+        ld.d   $t0, $t1, 0
+        addi.d $t0, $t0, -1
+
+        srli.d $t4, $a0, 12
+        andi   $t1, $t4, 0x1ff
+        mul.d  $t1, $t1, $t2
+        add.d  $t1, $t1, $t0
+        or     $t1, $t1, $t3  
+        ld.d   $a0, $t1, 0
+        srli.d $a0, $a0, 12
+        slli.d $a0, $a0, 12
+        slli.d $a0, $a0, 16
+        srli.d $a0, $a0, 16
+        or     $a0, $a0, $t3
+        
+        csrrd  $t0, LOONGARCH_CSR_SAVE4
+        csrrd  $t1, LOONGARCH_CSR_SAVE5
+        csrrd  $t2, LOONGARCH_CSR_SAVE6
+        csrrd  $t3, LOONGARCH_CSR_SAVE7
+        csrrd  $t4, LOONGARCH_CSR_SAVE8
+
         # put the saved user a0 in SAVE1, so we
         # can swap it with our a0 (TRAPFRAME) in the last step.
         ld.d   $t0, $a0, 24
@@ -124,6 +238,16 @@ userret:
         ld.d   $s8, $a0, 240
 
 	# restore user a0, and save TRAPFRAME in SAVE1
+        csrwr   $t0, LOONGARCH_CSR_SAVE4
+        and	$a0, $a0, $r0
+	addi.d  $a0, $a0, 1
+        slli.d  $a0, $a0, 47
+        and	$t0, $t0, $r0
+	addi.d  $t0, $t0, 1
+        slli.d  $t0, $t0, 12
+        sub.d   $a0, $a0, $t0
+        csrrd   $t0, LOONGARCH_CSR_SAVE4
+
         csrwr  $a0, LOONGARCH_CSR_SAVE1
         
         # return to user mode and user pc.

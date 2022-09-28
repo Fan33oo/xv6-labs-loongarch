@@ -121,7 +121,7 @@ usertrapret(void)
   // jump to uservec.S at the top of memory, which 
   // switches to the user page table, restores user registers,
   // and switches to user mode with ertn.
-  userret((uint64)p->trapframe | DMWIN_MASK, pgdl);
+  userret(TRAPFRAME, pgdl);
 }
 
 // interrupts and exceptions from kernel code go here via kernelvec,
@@ -139,7 +139,7 @@ kerneltrap()
     panic("kerneltrap: interrupts enabled");
 
   if((which_dev = devintr()) == 0){
-    printf("estat %x\n", r_csr_estat());
+    printf("estat %x\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16));
     printf("era=%p eentry=%p\n", r_csr_era(), r_csr_eentry());
     panic("kerneltrap");
   }
