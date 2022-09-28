@@ -284,6 +284,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     inc_ref_cnt(pa);
     flush_tlb();
   }
+  flush_tlb();
   return 0;
 
  err:

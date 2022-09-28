@@ -93,6 +93,12 @@ r_csr_estat()
   return x;
 }
 
+static inline void
+flush_tlb()
+{
+  asm volatile("invtlb 0x0, $zero, $zero");
+}
+
 #define CSR_ECFG_VS_SHIFT  16 
 #define CSR_ECFG_LIE_TI_SHIFT  11
 #define HWI_VEC  0x3fcU
