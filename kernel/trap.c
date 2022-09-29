@@ -69,7 +69,7 @@ usertrap(void)
     syscall();
   } 
   else if((which_dev = devintr()) != 0){
-    // devintr
+
   } 
   else if((((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x1) ||
         (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 0x2) ||
@@ -83,7 +83,6 @@ usertrap(void)
     else {
       pte_t *pte = walk(p->pagetable, badv, 0);
       if (*pte & PTE_V) {
-        printf("badv %p\n", badv);
         *pte |= PTE_A;
       }
       else {

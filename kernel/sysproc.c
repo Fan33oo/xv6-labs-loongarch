@@ -100,7 +100,6 @@ sys_pgaccess(void)
     pte = walk(pt, addr + i * PGSIZE, 0);
     if (*pte & PTE_A) {
       temp |= (1 << i);
-      printf("%d\n", i);
       *pte &= ~PTE_A;
     }
   }

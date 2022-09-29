@@ -16,6 +16,8 @@ handle_tlbr:
 	addi.d  $t0, $t0, -1
 	lddir	$t0, $t0, 1
 	addi.d  $t0, $t0, -1
+	ldpte   $t0, 0
+	ldpte	$t0, 1
 
 	and		$t2, $t2, $r0
 	addi.d  $t2, $t2, 8
@@ -29,11 +31,11 @@ handle_tlbr:
 	srli.d	$t1, $t1, 60
 	andi	$t1, $t1, 1
 	bnez	$t1, tag1
-	csrwr	$r0, LOONGARCH_CSR_TLBRELO0
-	bl		tag2
+	csrrd	$t1, LOONGARCH_CSR_TLBRELO0
+	srli.d  $t1, $t1, 1
+	slli.d  $t1, $t1, 1
+	csrwr	$t1, LOONGARCH_CSR_TLBRELO0
 tag1:
-	ldpte	$t0, 0
-tag2:
 	csrrd	$t1, LOONGARCH_CSR_TLBRBADV
 	srli.d	$t1, $t1, 12
 	andi	$t1, $t1, 0x1FE
@@ -43,12 +45,12 @@ tag2:
 	ld.d	$t1, $t1, 0
 	srli.d	$t1, $t1, 60
 	andi	$t1, $t1, 1
-	bnez	$t1, tag3
-	csrwr	$r0, LOONGARCH_CSR_TLBRELO1
-	bl 		tag4
-tag3:
-	ldpte	$t0, 1
-tag4:
+	bnez	$t1, tag2
+	csrrd	$t1, LOONGARCH_CSR_TLBRELO1
+	srli.d  $t1, $t1, 1
+	slli.d  $t1, $t1, 1
+	csrwr	$t1, LOONGARCH_CSR_TLBRELO1
+tag2:
 	tlbfill
 
 	csrrd	$t0, LOONGARCH_CSR_TLBRSAVE
