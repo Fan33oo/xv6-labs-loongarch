@@ -15,6 +15,7 @@ main()
 {
    if(cpuid() == 0){
     consoleinit();
+    statsinit();    
     printfinit();
     printf("\n");
     printf("xv6-loongarch kernel is booting\n");

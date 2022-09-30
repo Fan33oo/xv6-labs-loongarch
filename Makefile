@@ -42,7 +42,9 @@ OBJS = \
   $K/sysproc.o\
   $K/sysfile.o\
   $K/uservec.o\
-  $K/exception.o
+  $K/exception.o\
+  $K/stats.o\
+  $K/sprintf.o\
 
 TOOLPREFIX = loongarch64-unknown-linux-gnu-
 
@@ -75,7 +77,7 @@ $U/initcode: $U/initcode.S
 tags: $(OBJS) _init
 	etags *.S *.c
 
-ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
+ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o $U/statistics.o
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
@@ -127,14 +129,9 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
-	$U/_uthread\
-
-$U/uthread_switch.o : $U/uthread_switch.S
-	$(CC) $(CFLAGS) -c -o $U/uthread_switch.o $U/uthread_switch.S
-
-$U/_uthread: $U/uthread.o $U/uthread_switch.o $(ULIB)
-	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $U/_uthread $U/uthread.o $U/uthread_switch.o $(ULIB)
-	$(OBJDUMP) -S $U/_uthread > $U/uthread.asm
+	$U/_stats\
+	$U/_kalloctest\
+	$U/_bcachetest\
 
 
 fs.img: mkfs/mkfs README.md $(UPROGS)
