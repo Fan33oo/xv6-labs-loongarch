@@ -123,11 +123,11 @@ usertrapret(void)
 
   // tell uservec.S the user page table to switch to.
   volatile uint64 pgdl = (uint64)(p->pagetable);
-
+  uint64 trapframe_pa = walkaddr(p->pagetable, TRAPFRAME);
   // jump to uservec.S at the top of memory, which 
   // switches to the user page table, restores user registers,
   // and switches to user mode with ertn.
-  userret(TRAPFRAME, pgdl);
+  userret(trapframe_pa, pgdl);
 }
 
 // interrupts and exceptions from kernel code go here via kernelvec,
