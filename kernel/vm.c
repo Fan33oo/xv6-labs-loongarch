@@ -19,7 +19,6 @@ void
 vminit(void)
 {
   tlbinit();
-
   w_csr_pwcl((PTEWIDTH << 30)|(DIR2WIDTH << 25)|(DIR2BASE << 20)|(DIR1WIDTH << 15)|(DIR1BASE << 10)|(PTWIDTH << 5)|(PTBASE << 0));
   w_csr_pwch((DIR4WIDTH << 18)|(DIR3WIDTH << 6)|(DIR3BASE << 0));
 }
@@ -61,7 +60,7 @@ walk(pagetable_t pagetable, uint64 va, int alloc)
 // or 0 if not mapped.
 // Can only be used to look up user pages.
 uint64
-walkaddr(pagetable_t pagetable, uint64 va)
+walkaddr(pagetable_t pagetable, uint64 va, int write)
 {
   pte_t *pte;
   uint64 pa;
@@ -76,7 +75,24 @@ walkaddr(pagetable_t pagetable, uint64 va)
     return 0;
   if((*pte & PTE_PLV) == 0)
     return 0;
-  pa = PTE2PA(*pte);
+  if (write) {
+    if (*pte & PTE_W) {
+      pa = PTE2PA(*pte);
+    }
+    else if (*pte & PTE_COW) {
+      if (cow_copy(pagetable, va) != 0) {
+        return 0;
+      }
+      pte = walk(pagetable, va, 0);
+      pa = PTE2PA(*pte);
+    }
+    else {
+      return 0;
+    }
+  }
+  else {
+    pa = PTE2PA(*pte);
+  }
   return pa;
 }
 
@@ -309,11 +325,7 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
-    printf("copyout to pgtb: %p\n", pagetable);
-    if (cow_copy(pagetable, va0) < 0)
-      return -1;
-    pa0 = walkaddr(pagetable, va0);
-    printf("va %p pa %p\n", va0, pa0);
+    pa0 = walkaddr(pagetable, va0, 1);
     if(pa0 == 0)
       return -1;
     n = PGSIZE - (dstva - va0);
@@ -338,7 +350,7 @@ copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
 
   while(len > 0){
     va0 = PGROUNDDOWN(srcva);
-    pa0 = walkaddr(pagetable, va0);
+    pa0 = walkaddr(pagetable, va0, 0);
     if(pa0 == 0)
       return -1;
     n = PGSIZE - (srcva - va0);
@@ -365,7 +377,7 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
 
   while(got_null == 0 && max > 0){
     va0 = PGROUNDDOWN(srcva);
-    pa0 = walkaddr(pagetable, va0);
+    pa0 = walkaddr(pagetable, va0, 0);
     if(pa0 == 0)
       return -1;
     n = PGSIZE - (srcva - va0);

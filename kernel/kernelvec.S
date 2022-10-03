@@ -7,6 +7,10 @@
 .globl kernelvec
 .align 4
 kernelvec:
+        and    $t0, $t0, $r0
+        addi.d $t0, $t0, 9
+        slli.d $t0, $t0, 60
+        or     $sp, $sp, $t0
         csrrd  $t0, LOONGARCH_CSR_SAVE0
 
         // make room to save registers.

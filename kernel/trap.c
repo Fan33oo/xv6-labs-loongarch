@@ -123,7 +123,7 @@ usertrapret(void)
 
   // tell uservec.S the user page table to switch to.
   volatile uint64 pgdl = (uint64)(p->pagetable);
-  uint64 trapframe_pa = walkaddr(p->pagetable, TRAPFRAME);
+  uint64 trapframe_pa = walkaddr(p->pagetable, TRAPFRAME, 1);
   // jump to uservec.S at the top of memory, which 
   // switches to the user page table, restores user registers,
   // and switches to user mode with ertn.
