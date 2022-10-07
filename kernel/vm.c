@@ -269,22 +269,18 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
   pte_t *pte;
   uint64 pa, i;
   uint flags;
-  printf("uvmcopy get new pgtb: %p from old: %p\n", new, old);
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walk(old, i, 0)) == 0)
       panic("uvmcopy: pte should exist");
     if((*pte & PTE_V) == 0)
       panic("uvmcopy: page not present");
     pa = PTE2PA(*pte);
-    printf("va %p pa %p  ", i, pa);
     if (*pte & PTE_W) {
-      printf(" w\n");
       *pte &= (~PTE_W);
       *pte |= PTE_COW;
       flags = PTE_FLAGS(*pte);
     }
     else {
-      printf("!w\n");
       flags = PTE_FLAGS(*pte);
     }
     if(mappages(new, i, PGSIZE, pa, flags) != 0){
@@ -321,8 +317,6 @@ int
 copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 {
   uint64 n, va0, pa0;
-
-
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
     pa0 = walkaddr(pagetable, va0, 1);
@@ -414,30 +408,29 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
 int
 cow_copy(pagetable_t pagetable, uint64 va)
 {
-  printf("Enter cow_copy: ");
   // va = PGROUNDDOWN(va);
+  printf("ptbl %p\n", pagetable);
+  printf("va %p\n", va);
   pte_t *pte = walk(pagetable, va, 0);
   if (pte == 0)
     return -1;
   if (!(*pte & PTE_COW)) {
-    printf("not cow!\n");
+    printf("not\n");
     return 1;
   }
+  printf("cow\n");
   uint64 pa = PTE2PA(*pte);
-  printf("cow! pa %p\n", pa);
   pa |= DMWIN_MASK;
   if((uint64)pa < RAMBASE || (uint64)pa >= RAMSTOP)
     panic("cow copy");
 
   if (get_ref_cnt(pa) == 1) {
-    printf("=\n");
     *pte &= (~PTE_COW);
     *pte |= PTE_W;
     flush_tlb();
     return 0;
   }
   else if (get_ref_cnt(pa) > 1) {
-    printf(">\n");
     char *mem = kalloc();
     if (mem == 0)
       return -1;

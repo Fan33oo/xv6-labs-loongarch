@@ -68,12 +68,10 @@ usertrap(void)
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
-    printf("CODE:%d\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16));
     uint64 va = r_csr_badv();
-    printf("%p\n", va);
-    printf("trap tb %p\n", p->pagetable);
+    printf("badv %p\n", va);
     if (cow_copy(p->pagetable, va) != 0) {
-      printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
+      printf("usertrap(): unexpected trapcause %x pid=%d\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16), p->pid);
       printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
       p->killed = 1;
     }
@@ -105,7 +103,7 @@ usertrapret(void)
 
   // set up trapframe values that uservec will need when
   // the process next re-enters the kernel.
-  p->trapframe->kernel_pgdl = r_csr_pgdl();         // kernel page table
+
   p->trapframe->kernel_sp = p->kstack + PGSIZE; // process's kernel stack
   p->trapframe->kernel_hartid = r_tp();         // hartid for cpuid()
 
@@ -123,11 +121,10 @@ usertrapret(void)
 
   // tell uservec.S the user page table to switch to.
   volatile uint64 pgdl = (uint64)(p->pagetable);
-  uint64 trapframe_pa = walkaddr(p->pagetable, TRAPFRAME, 1);
   // jump to uservec.S at the top of memory, which 
   // switches to the user page table, restores user registers,
   // and switches to user mode with ertn.
-  userret(trapframe_pa, pgdl);
+  userret((uint64)p->trapframe, pgdl);
 }
 
 // interrupts and exceptions from kernel code go here via kernelvec,
@@ -145,7 +142,7 @@ kerneltrap()
     panic("kerneltrap: interrupts enabled");
 
   if((which_dev = devintr()) == 0){
-    printf("estat %x\n", r_csr_estat());
+    printf("estat %x\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16));
     printf("era=%p eentry=%p\n", r_csr_era(), r_csr_eentry());
     panic("kerneltrap");
   }

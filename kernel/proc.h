@@ -60,7 +60,6 @@ struct trapframe {
   /* 248 */ uint64 kernel_sp;     // top of process's kernel stack
   /* 256 */ uint64 era;           // saved user program counter
   /* 264 */ uint64 kernel_hartid; // saved kernel tp
-  /* 272 */ uint64 kernel_pgdl;   // saved kernel pagetable
 };
 
 

@@ -85,7 +85,6 @@ int exec(char *path, char **argv)
   // Push argument strings, prepare rest of stack in ustack.
   for (argc = 0; argv[argc]; argc++)
   {
-    printf("push args\n");
     if (argc >= MAXARG)
       goto bad;
     sp -= strlen(argv[argc]) + 1;

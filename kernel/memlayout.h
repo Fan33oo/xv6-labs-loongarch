@@ -30,7 +30,7 @@
 #define RAMSTOP RAMEND - NPROC * PGSIZE * 2
 #define RAMEND  (RAMBASE + 128*1024*1024)
 
-// map kernel stacks beneath the trampframe,
+// map kernel stacks beneath the RAMEND
 // each surrounded by invalid guard pages.
 #define KSTACK(p) (RAMEND - ((p)+1)* 2*PGSIZE)
 
@@ -44,4 +44,4 @@
 //   invalid guard page
 //   KSRACK (used for kernel thread)
 //   TRAPFRAME (p->trapframe, used by the uservec)
-#define TRAPFRAME (MAXVA - PGSIZE)
+// #define TRAPFRAME (MAXVA - PGSIZE)

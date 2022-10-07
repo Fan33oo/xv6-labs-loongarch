@@ -57,7 +57,6 @@ struct cmd *parsecmd(char*);
 void
 runcmd(struct cmd *cmd)
 {
-  printf("runcmd\n");
   int p[2];
   struct backcmd *bcmd;
   struct execcmd *ecmd;
@@ -166,7 +165,6 @@ main(void)
       continue;
     }
     if(fork1() == 0) {
-      printf("fork ok\n");
       runcmd(parsecmd(buf));
     }
     // printf("old pid\n");

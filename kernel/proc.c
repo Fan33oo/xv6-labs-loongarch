@@ -35,7 +35,7 @@ procinit(void)
   for(p = proc; p < &proc[NPROC]; p++) {
       initlock(&p->lock, "proc");
       p->state = UNUSED;
-      p->kstack = KSTACK((int) (p - proc)); 
+      p->kstack = KSTACK((int) (p - proc));
   }
 }
 
@@ -162,12 +162,11 @@ proc_pagetable(struct proc *p)
   if(pagetable == 0)
     return 0;
 
-    // map the trapframe beneath 2 pages of KSTACK, for uservec.S.
-  if(mappages(pagetable, TRAPFRAME, PGSIZE,
-              (uint64)(p->trapframe), PTE_NX | PTE_P | PTE_W | PTE_MAT | PTE_D) < 0){
-    uvmfree(pagetable, 0);
-    return 0;
-  }
+  // if(mappages(pagetable, TRAPFRAME, PGSIZE,
+  //             (uint64)(p->trapframe), PTE_NX | PTE_PLV | PTE_P | PTE_W | PTE_MAT | PTE_D) < 0){
+  //   uvmfree(pagetable, 0);
+  //   return 0;
+  // }
   
   return pagetable;
 }
@@ -177,7 +176,7 @@ proc_pagetable(struct proc *p)
 void
 proc_freepagetable(pagetable_t pagetable, uint64 sz)
 {
-  uvmunmap(pagetable, TRAPFRAME, 1, 0);
+  // uvmunmap(pagetable, TRAPFRAME, 1, 0);
   uvmfree(pagetable, sz);
 }
 

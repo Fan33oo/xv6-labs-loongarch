@@ -66,9 +66,6 @@ uservec:
         # make tp hold the current hartid, from p->trapframe->kernel_hartid
         ld.d   $tp, $a0, 264
 
-        # restore kernel page table from p->trapframe->kernel_pgdl
-        ld.d   $t1, $a0, 272
-        csrwr  $t1, LOONGARCH_CSR_PGDL
         invtlb 0x0,$zero,$zero
 
         # jump to usertrap(), which does not return
