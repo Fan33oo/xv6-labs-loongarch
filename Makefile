@@ -4,7 +4,7 @@ U=user
 # >= 512M
 MEM=4G
 # 1-4
-CPUS=2
+CPUS=4
 BIOS=./qemu-loongarch64-runenv/loongarch_bios_0310.bin
 KERNEL=./kernel/kernel
 QEMU=qemu-system-loongarch64
