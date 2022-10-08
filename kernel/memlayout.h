@@ -43,4 +43,4 @@
 //   ...
 //   invalid guard page
 //   KSRACK (used for kernel thread)
-//   TRAPFRAME (p->trapframe, used by the uservec)
+//   (p->trapframe, used by the uservec)
