@@ -44,4 +44,3 @@
 //   invalid guard page
 //   KSRACK (used for kernel thread)
 //   TRAPFRAME (p->trapframe, used by the uservec)
-#define TRAPFRAME (MAXVA - PGSIZE)
