@@ -16,15 +16,14 @@ uservec:
         # in privilege0, but with a
         # user page table.
         #
-        # CSR.SAVE points to where the process's p->trapframe is
-        # mapped into user space, at TRAPFRAME.
+        # CSR.SAVE points to where the process's p->trapframe
         #
         
 	# swap a0 and SAVE
-        # so that a0 is TRAPFRAME
+        # so that a0 is p->trapframe
         csrwr  $a0, LOONGARCH_CSR_SAVE1
 
-        # save the user registers in TRAPFRAME
+        # save the user registers in p->trapframe
         st.d   $ra, $a0, 0
         st.d   $tp, $a0, 8
         st.d   $sp, $a0, 16
@@ -76,10 +75,10 @@ uservec:
 
 .globl userret
 userret:
-        # userret(TRAPFRAME, pagetable)
+        # userret(p->trapframe, pagetable)
         # switch from kernel to user.
         # usertrapret() calls here.
-        # a0: TRAPFRAME, in user page table.
+        # a0: p->trapframe, in user page table.
         # a1: user page table, for pgdl.
 
         # switch to the user page table.
@@ -87,11 +86,11 @@ userret:
         invtlb 0x0,$zero,$zero
 
         # put the saved user a0 in SAVE1, so we
-        # can swap it with our a0 (TRAPFRAME) in the last step.
+        # can swap it with our a0 (p->trapframe) in the last step.
         ld.d   $t0, $a0, 24
         csrwr  $t0, LOONGARCH_CSR_SAVE1
 
-        # restore all but a0 from TRAPFRAME
+        # restore all but a0 from p->trapframe
         ld.d   $ra, $a0, 0
         ld.d   $tp, $a0, 8
         ld.d   $sp, $a0, 16
@@ -123,7 +122,7 @@ userret:
         ld.d   $s7, $a0, 232
         ld.d   $s8, $a0, 240
 
-	# restore user a0, and save TRAPFRAME in SAVE1
+	# restore user a0, and save p->trapframe in SAVE1
         csrwr  $a0, LOONGARCH_CSR_SAVE1
         
         # return to user mode and user pc.

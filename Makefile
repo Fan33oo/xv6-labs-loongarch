@@ -4,7 +4,7 @@ U=user
 # >= 512M
 MEM=4G
 # 1-4
-CPUS=2
+CPUS=1
 BIOS=./qemu-loongarch64-runenv/loongarch_bios_0310.bin
 KERNEL=./kernel/kernel
 QEMU=qemu-system-loongarch64
@@ -127,14 +127,7 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
-	$U/_uthread\
-
-$U/uthread_switch.o : $U/uthread_switch.S
-	$(CC) $(CFLAGS) -c -o $U/uthread_switch.o $U/uthread_switch.S
-
-$U/_uthread: $U/uthread.o $U/uthread_switch.o $(ULIB)
-	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $U/_uthread $U/uthread.o $U/uthread_switch.o $(ULIB)
-	$(OBJDUMP) -S $U/_uthread > $U/uthread.asm
+	$U/_bigfile\
 
 
 fs.img: mkfs/mkfs README.md $(UPROGS)
