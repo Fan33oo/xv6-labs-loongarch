@@ -69,7 +69,7 @@ usertrap(void)
     // ok
   } else {
     uint64 va = r_csr_badv();
-    printf("badv %p\n", va);
+    // printf("badv %p\n", va);
     if (cow_copy(p->pagetable, va) != 0) {
       printf("usertrap(): unexpected trapcause %x pid=%d\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16), p->pid);
       printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
