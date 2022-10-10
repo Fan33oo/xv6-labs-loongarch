@@ -13,6 +13,10 @@
 #define UART0 (0x1fe001e0UL | DMWIN_MASK)
 #define UART0_IRQ 2
 
+// virtio mmio interface
+#define VIRTIO0 0x10001000
+#define VIRTIO0_IRQ 1
+
 /* ============== LS7A registers =============== */
 #define LS7A_PCH_REG_BASE		(0x10000000UL | DMWIN_MASK)
 
