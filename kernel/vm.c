@@ -424,7 +424,7 @@ cow_copy(pagetable_t pagetable, uint64 va)
   uint64 pa = PTE2PA(*pte);
   pa |= DMWIN_MASK;
   if((uint64)pa < RAMBASE || (uint64)pa >= RAMSTOP)
-    panic("cow copy");
+    return -1;
 
   if (get_ref_cnt(pa) == 1) {
     *pte |= PTE_D;
