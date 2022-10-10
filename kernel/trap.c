@@ -68,12 +68,19 @@ usertrap(void)
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
+    uint64 ecode = (r_csr_estat() & CSR_ESTAT_ECODE) >> 16;
     uint64 va = r_csr_badv();
-    printf("badv %p\n", va);
-    if (cow_copy(p->pagetable, va) != 0) {
-      printf("usertrap(): unexpected trapcause %x pid=%d\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16), p->pid);
-      printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
-      p->killed = 1;
+    //printf("badv %p, page %p\n", va, p->pagetable);
+    if (ecode == 4) { // PME(page modify) exception
+        if (cow_copy(p->pagetable, PGROUNDDOWN(va)) != 0) {
+            printf("usertrap(): unexpected PME trap pid=%d\n", p->pid);
+            printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
+            p->killed = 1;
+        }
+    } else {
+        printf("usertrap(): unexpected trap %d pid=%d\n", ecode, p->pid);
+        printf("va=%p era=%p badi=%x\n", va, r_csr_era(), r_csr_badi());
+        p->killed = 1;
     }
   }
 
