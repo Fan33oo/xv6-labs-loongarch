@@ -13,7 +13,7 @@ volatile static int started = 0;
 void
 main()
 {
-   if(cpuid() == 0){
+  if(cpuid() == 0){
     consoleinit();
     printfinit();
     printf("\n");

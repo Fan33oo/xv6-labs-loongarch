@@ -192,9 +192,12 @@ devintr()
     // now allowed to interrupt again.
 
       extioi_complete(1UL << UART0_IRQ);
-    } else if(irq){
-       printf("unexpected interrupt irq=%d\n", irq);
-
+    }
+    else if (irq & (1UL << VIRTIO0_IRQ)) {
+      virtio_disk_intr();
+    } 
+    else if(irq){
+      printf("unexpected interrupt irq=%d\n", irq);
       apic_complete(irq); 
       extioi_complete(irq);        
     }
