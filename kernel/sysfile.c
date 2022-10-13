@@ -316,6 +316,27 @@ sys_open(void)
     }
   }
 
+  if (ip->type == T_SYMLINK && !(omode & O_NOFOLLOW)) {
+    int count = 0;
+    char target[MAXPATH];
+    while ((ip->type == T_SYMLINK) && count < 11) {
+      if (readi(ip, 0, (uint64)target, 0, MAXPATH) != MAXPATH)
+        panic("open: readi");
+      iunlockput(ip);
+      if((ip = namei(target)) == 0){
+        end_op();
+        return -1;
+      }
+      ilock(ip);
+      count++;
+    }
+    if (count == 11) {
+      iunlockput(ip);
+      end_op();
+      return -1;
+    }
+  }
+
   if(ip->type == T_DEVICE && (ip->major < 0 || ip->major >= NDEV)){
     iunlockput(ip);
     end_op();
@@ -488,33 +509,22 @@ sys_pipe(void)
 uint64
 sys_symlink(void)
 {
-  char name[DIRSIZ];
+  char target[MAXPATH];
   char path[MAXPATH];
   struct inode *ip;
-  struct file *f;
-  if (argstr(0, name, DIRSIZ) < 0 || argstr(1, path, MAXPATH) < 0)
+
+  if(argstr(0, target, MAXPATH) < 0 || argstr(1, path, MAXPATH) < 0)
     return -1;
 
   begin_op();
-
-  if (ip = namei(name) == 0) {
-    end_op();
-    reutnr -1;
-  }
-  if (ip->type == T_DIR) {
+  ip = create(path, T_SYMLINK, 0, 0);
+  if (ip == 0) {
     end_op();
     return -1;
   }
-  if (ip_sl = create(path, T_SYMLINK, 0, 0) == 0) {
-    end_op();
-    return -1;
-  }
-  if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
-    if(f)
-      fileclose(f);
-    iunlockput(ip);
-    end_op();
-    return -1;
-  }
+  if (writei(ip, 0, (uint64)target, 0, MAXPATH) != MAXPATH)
+    panic("symlink: writei");
+  iunlockput(ip);
+  end_op();
   return 0;
 }
