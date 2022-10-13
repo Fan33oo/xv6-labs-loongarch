@@ -10,8 +10,8 @@ KERNEL=./kernel/kernel
 QEMU=qemu-system-loongarch64
 CMDLINE=root=/dev/ram console=ttyS0,115200 rdinit=/init
 GRAPHIC=-vga none -nographic
-DRIVE="file=./fs.img,if=none,format=raw,id=x0"
-DEVICE="virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0"
+# DRIVE="file=./fs.img,if=none,format=raw,id=x0"
+# DEVICE="virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0"
 
 OBJS = \
   $K/entry.o \
@@ -34,6 +34,7 @@ OBJS = \
   $K/apic.o\
   $K/extioi.o\
   $K/bio.o\
+  $K/ramdisk.o\
   $K/log.o\
   $K/fs.o\
   $K/pipe.o\
@@ -43,8 +44,8 @@ OBJS = \
   $K/sysfile.o\
   $K/uservec.o\
   $K/exception.o\
-  $K/virtio_disk.o\
-#   $K/ramdisk.o\
+#   $K/virtio_disk.o\
+
 
 TOOLPREFIX = loongarch64-unknown-linux-gnu-
 
@@ -134,13 +135,13 @@ UPROGS=\
 
 fs.img: mkfs/mkfs README.md $(UPROGS)
 	mkfs/mkfs fs.img README.md $(UPROGS)
-# xxd -i fs.img > kernel/ramdisk.h
+	xxd -i fs.img > kernel/ramdisk.h
 
 -include kernel/*.d user/*.d
 
 all: fs.img $K/kernel 
 
-QEMUOPTS=-m $(MEM) -smp $(CPUS) -bios $(BIOS) -kernel $(KERNEL) -drive $(DRIVE) -device $(DEVICE) -append "$(CMDLINE)" $(GRAPHIC) -L ./qemu-loongarch64-runenv
+QEMUOPTS=-m $(MEM) -smp $(CPUS) -bios $(BIOS) -kernel $(KERNEL) -append "$(CMDLINE)" $(GRAPHIC) -L ./qemu-loongarch64-runenv
 
 qemu: fs.img $K/kernel
 	$(QEMU) $(QEMUOPTS)

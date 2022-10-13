@@ -28,8 +28,8 @@ main()
     binit();         // buffer cache
     iinit();         // inode table
     fileinit();      // file table
-    // ramdiskinit();   // emulated hard disk
-    virtio_disk_init();
+    ramdiskinit();   // emulated hard disk
+    // virtio_disk_init();
     userinit();      // first user process
     __sync_synchronize();
     started = 1;
