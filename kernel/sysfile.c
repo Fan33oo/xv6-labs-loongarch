@@ -484,3 +484,37 @@ sys_pipe(void)
   }
   return 0;
 }
+
+uint64
+sys_symlink(void)
+{
+  char name[DIRSIZ];
+  char path[MAXPATH];
+  struct inode *ip;
+  struct file *f;
+  if (argstr(0, name, DIRSIZ) < 0 || argstr(1, path, MAXPATH) < 0)
+    return -1;
+
+  begin_op();
+
+  if (ip = namei(name) == 0) {
+    end_op();
+    reutnr -1;
+  }
+  if (ip->type == T_DIR) {
+    end_op();
+    return -1;
+  }
+  if (ip_sl = create(path, T_SYMLINK, 0, 0) == 0) {
+    end_op();
+    return -1;
+  }
+  if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
+    if(f)
+      fileclose(f);
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+  return 0;
+}
