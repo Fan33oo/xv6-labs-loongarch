@@ -24,6 +24,8 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int symlink(char*, char*);
+void* mmap(void*, int, int, int, int, int); // arg0 and arg5 should be zero
+int munmap(void*, int);
 
 // ulib.c
 int stat(const char*, struct stat*);
