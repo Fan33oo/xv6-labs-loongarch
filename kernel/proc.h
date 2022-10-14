@@ -66,6 +66,17 @@ struct trapframe {
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
+struct VMA
+{
+  int used;
+  uint64 address;
+  int length;
+  int prot;
+  int flags;
+  struct file *f;
+  
+}
+
 struct proc
 {
   struct spinlock lock;
