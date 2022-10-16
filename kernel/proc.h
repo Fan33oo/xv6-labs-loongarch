@@ -74,8 +74,7 @@ struct VMA
   int prot;
   int flags;
   struct file *f;
-  
-}
+};
 
 struct proc
 {
@@ -100,4 +99,5 @@ struct proc
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  struct VMA vma[16];
 };

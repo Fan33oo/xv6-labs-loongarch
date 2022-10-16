@@ -102,10 +102,11 @@ uint64
 sys_mmap(void)
 {
   int length, prot, flags, fd;
-  if (argint(1, &length) < 0 || (argint(2, &prot) < 0
-   || (argint(3, &flags) < 0 || (argint(4, &fd) < 0)
-    return MAP_FAILED;
-  
+  if (argint(1, &length) < 0 || argint(2, &prot) < 0
+   || argint(3, &flags) < 0 || argint(4, &fd) < 0) {
+    return (uint64)MAP_FAILED;
+   }
+  return 0;
 }
 
 uint64
