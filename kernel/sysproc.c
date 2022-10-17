@@ -105,8 +105,37 @@ sys_mmap(void)
   if (argint(1, &length) < 0 || argint(2, &prot) < 0
    || argint(3, &flags) < 0 || argint(4, &fd) < 0) {
     return (uint64)MAP_FAILED;
-   }
-  return 0;
+  }
+  struct proc *p = myproc();
+  struct VMA v;
+  int i;
+  int found = 0;
+  uint64 addr = (uint64)MAXVA;
+  addr = PGROUNDUP(addr - length);
+  for (i = 0; i < 16; i++) {
+    v = p->vma[i];
+    if (v.used == 1){
+      if (v.address <= addr) {
+        addr = PGROUNDUP(v.address - length);
+      }
+    }
+    else if (!found){
+      found = i + 1;
+    }
+  }
+  if (found) {
+    found -= 1;
+    p->vma[found].used = 1;
+    p->vma[found].address = addr;
+    p->vma[found].prot = prot;
+    p->vma[found].flags = flags;
+    p->vma[found].f = p->ofile[fd];
+    filedup(p->vma[found].f);
+    return addr;
+  }
+  else {
+    return (uint64)MAP_FAILED;
+  }
 }
 
 uint64

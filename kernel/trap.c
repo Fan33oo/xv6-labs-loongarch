@@ -3,8 +3,12 @@
 #include "memlayout.h"
 #include "loongarch.h"
 #include "spinlock.h"
+#include "sleeplock.h"
 #include "proc.h"
 #include "defs.h"
+#include "fcntl.h"
+#include "fs.h"
+#include "file.h"
 
 struct spinlock tickslock;
 uint ticks;
@@ -65,10 +69,68 @@ usertrap(void)
     intr_on();
 
     syscall();
-  } else if((which_dev = devintr()) != 0){
+  }
+  else if (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 8) {
+    uint64 addr = PGROUNDUP(r_csr_badv());
+    int i;
+    struct VMA v;
+    int foundv = 0;
+    uint64 off = 0;
+    for (i = 0; i < 16; i++) {
+      v = p->vma[i];
+      if (v.used) {
+        if (addr >= v.address && addr < (v.address + v.length)) {
+          off = addr - v.address;
+          printf("off %d\n", off);
+          foundv = 1;
+          break;
+        }
+      }
+    }
+    if (!foundv) {
+      printf("VMA not found\n");
+      p->killed = 1;
+    }
+    else {
+      addr = PGROUNDUP(addr);
+      char *mem = kalloc();
+      if(mem == 0){
+        p->killed = 1;
+      }
+      else {
+        memset(mem, 0, PGSIZE);
+        ilock(v.f->ip);
+        if (readi(v.f->ip, 0, (uint64)mem, off, PGSIZE) != PGSIZE) {
+          kfree(mem);
+          p->killed = 1;
+          iunlock(v.f->ip);
+        }
+        else {
+          iunlock(v.f->ip);
+          uint64 pg_flags = PTE_P|PTE_PLV|PTE_MAT;
+          if (!(v.prot & PROT_READ))
+            pg_flags |= PTE_NR;
+          if (!(v.prot & PROT_EXEC))
+            pg_flags |= PTE_NX;
+          if (v.prot & PROT_WRITE) {
+            pg_flags |= PTE_D;
+            pg_flags |= PTE_W;
+          }
+          uint64 oldsz = p->sz;
+          if(mappages(p->pagetable, addr, PGSIZE, (uint64)mem, pg_flags != 0)) {
+            kfree(mem);
+            uvmdealloc(p->pagetable, addr, oldsz);
+            p->killed = 1;
+          }
+        }
+      }
+    }
+  } 
+  else if((which_dev = devintr()) != 0){
     // ok
-  } else {
-    printf("usertrap(): unexpected trapcause %x pid=%d\n", r_csr_estat(), p->pid);
+  } 
+  else {
+    printf("usertrap(): unexpected trapcause %x pid=%d\n", ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16), p->pid);
     printf("            era=%p badi=%x\n", r_csr_era(), r_csr_badi());
     p->killed = 1;
   }

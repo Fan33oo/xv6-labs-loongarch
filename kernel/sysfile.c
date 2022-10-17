@@ -290,6 +290,7 @@ sys_open(void)
   int fd, omode;
   struct file *f;
   struct inode *ip;
+  
   int n;
 
   if((n = argstr(0, path, MAXPATH)) < 0 || argint(1, &omode) < 0)
