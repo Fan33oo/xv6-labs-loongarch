@@ -111,12 +111,12 @@ sys_mmap(void)
   int i;
   int found = 0;
   uint64 addr = (uint64)MAXVA;
-  addr = PGROUNDUP(addr - length);
+  addr = addr - length;
   for (i = 0; i < 16; i++) {
     v = p->vma[i];
     if (v.used == 1){
       if (v.address <= addr) {
-        addr = PGROUNDUP(v.address - length);
+        addr = v.address;
       }
     }
     else if (!found){
@@ -124,13 +124,16 @@ sys_mmap(void)
     }
   }
   if (found) {
+    addr = PGROUNDUP(addr - length);
     found -= 1;
     p->vma[found].used = 1;
     p->vma[found].address = addr;
+    p->vma[found].length = length;
     p->vma[found].prot = prot;
     p->vma[found].flags = flags;
     p->vma[found].f = p->ofile[fd];
     filedup(p->vma[found].f);
+    mappages(p->pagetable, addr, PGSIZE, 0, 0);
     return addr;
   }
   else {

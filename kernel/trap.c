@@ -70,7 +70,7 @@ usertrap(void)
 
     syscall();
   }
-  else if (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 8) {
+  else if (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 7) {
     uint64 addr = PGROUNDUP(r_csr_badv());
     int i;
     struct VMA v;
@@ -81,7 +81,6 @@ usertrap(void)
       if (v.used) {
         if (addr >= v.address && addr < (v.address + v.length)) {
           off = addr - v.address;
-          printf("off %d\n", off);
           foundv = 1;
           break;
         }
