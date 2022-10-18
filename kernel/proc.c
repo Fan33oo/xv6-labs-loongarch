@@ -290,6 +290,18 @@ fork(void)
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
 
+  // VMA
+  for (i = 0; i < 16; i++) {
+    if (p->vma[i].used) {
+      np->vma[i] = p->vma[i];
+      if (mappages(np->pagetable, np->vma[i].address, np->vma[i].length, 0,
+        PTE_LAZY | PTE_NR | PTE_NX) != 0){
+        panic("fork vma");
+      }
+      filedup(np->vma[i].f); 
+    }
+  }
+
   safestrcpy(np->name, p->name, sizeof(p->name));
 
   pid = np->pid;
@@ -332,6 +344,13 @@ exit(int status)
 
   if(p == initproc)
     panic("init exiting");
+  
+  int i;
+  for (i = 0; i < 16; i++) {
+    if (p->vma[i].used) {
+      munmap(p->vma[i].address, p->vma[i].length);
+    }
+  }
 
   // Close all open files.
   for(int fd = 0; fd < NOFILE; fd++){
@@ -670,7 +689,9 @@ mmap(int length, int prot, int flags, int fd)
     found -= 1;
     if (!p->ofile[fd]->writable) {
       if (!(flags == MAP_PRIVATE)) {
-        return (uint64)MAP_FAILED;
+        if (prot & PROT_WRITE) {
+          return (uint64)MAP_FAILED;
+        }
       }
     }
     p->vma[found].used = 1;
@@ -729,4 +750,67 @@ munmap(uint64 addr, int length)
     uvmunmap(p->pagetable, addr, length/PGSIZE, 1);
     return 0;
   }
+}
+
+int mmap_alloc(uint64 addr)
+{
+  struct proc *p = myproc();
+  int i;
+  struct VMA v;
+  int foundv = 0;
+  uint64 off = 0;
+  for (i = 0; i < 16; i++)
+  {
+    v = p->vma[i];
+    if (v.used)
+    {
+      if (addr >= v.address && addr < (v.address + v.length))
+      {
+        off = addr - v.address;
+        foundv = 1;
+        break;
+      }
+    }
+  }
+  if (!foundv)
+  {
+    printf("VMA not found\n");
+    return -1;
+  }
+  else
+  {
+    addr = PGROUNDUP(addr);
+    char *mem = kalloc();
+    if (mem == 0)
+    {
+      printf("no mem\n");
+      return -1;
+    }
+    else
+    {
+      memset(mem, 0, PGSIZE);
+      ilock(v.f->ip);
+      readi(v.f->ip, 0, (uint64)mem, off, PGSIZE);
+      iunlock(v.f->ip);
+      uint64 pg_flags = PTE_P | PTE_PLV | PTE_MAT;
+      if (!(v.prot & PROT_READ))
+        pg_flags |= PTE_NR;
+      if (!(v.prot & PROT_EXEC))
+        pg_flags |= PTE_NX;
+      if (v.prot & PROT_WRITE)
+      {
+        pg_flags |= PTE_D;
+        pg_flags |= PTE_W;
+      }
+      uint64 oldsz = p->sz;
+      if (mappages(p->pagetable, addr, PGSIZE, (uint64)mem, pg_flags) != 0)
+      {
+        printf("map fail\n");
+        kfree(mem);
+        uvmdealloc(p->pagetable, addr, oldsz);
+        return -1;
+      }
+    }
+  }
+  return 0;
 }

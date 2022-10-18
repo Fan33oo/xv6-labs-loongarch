@@ -80,6 +80,7 @@ int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
 uint64          mmap(int, int, int, int);
 int             munmap(uint64, int);
+int             mmap_alloc(uint64);
 
 // swtch.S
 void            swtch(struct context*, struct context*);
