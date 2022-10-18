@@ -70,7 +70,8 @@ usertrap(void)
 
     syscall();
   }
-  else if (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 7) {
+  else if (((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 7 || 
+    ((r_csr_estat() & CSR_ESTAT_ECODE) >> 16) == 1) {
     uint64 addr = PGROUNDUP(r_csr_badv());
     int i;
     struct VMA v;
@@ -94,33 +95,29 @@ usertrap(void)
       addr = PGROUNDUP(addr);
       char *mem = kalloc();
       if(mem == 0){
+        printf("no mem\n");
         p->killed = 1;
       }
       else {
         memset(mem, 0, PGSIZE);
         ilock(v.f->ip);
-        if (readi(v.f->ip, 0, (uint64)mem, off, PGSIZE) != PGSIZE) {
-          kfree(mem);
-          p->killed = 1;
-          iunlock(v.f->ip);
+        readi(v.f->ip, 0, (uint64)mem, off, PGSIZE);
+        iunlock(v.f->ip);
+        uint64 pg_flags = PTE_P|PTE_PLV|PTE_MAT;
+        if (!(v.prot & PROT_READ))
+          pg_flags |= PTE_NR;
+        if (!(v.prot & PROT_EXEC))
+          pg_flags |= PTE_NX;
+        if (v.prot & PROT_WRITE) {
+          pg_flags |= PTE_D;
+          pg_flags |= PTE_W;
         }
-        else {
-          iunlock(v.f->ip);
-          uint64 pg_flags = PTE_P|PTE_PLV|PTE_MAT;
-          if (!(v.prot & PROT_READ))
-            pg_flags |= PTE_NR;
-          if (!(v.prot & PROT_EXEC))
-            pg_flags |= PTE_NX;
-          if (v.prot & PROT_WRITE) {
-            pg_flags |= PTE_D;
-            pg_flags |= PTE_W;
-          }
-          uint64 oldsz = p->sz;
-          if(mappages(p->pagetable, addr, PGSIZE, (uint64)mem, pg_flags != 0)) {
-            kfree(mem);
-            uvmdealloc(p->pagetable, addr, oldsz);
-            p->killed = 1;
-          }
+        uint64 oldsz = p->sz;
+        if(mappages(p->pagetable, addr, PGSIZE, (uint64)mem, pg_flags) != 0) {
+          printf("map fail\n");
+          kfree(mem);
+          uvmdealloc(p->pagetable, addr, oldsz);
+          p->killed = 1;
         }
       }
     }

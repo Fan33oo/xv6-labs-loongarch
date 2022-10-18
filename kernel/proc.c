@@ -3,8 +3,14 @@
 #include "memlayout.h"
 #include "loongarch.h"
 #include "spinlock.h"
+#include "sleeplock.h"
 #include "proc.h"
 #include "defs.h"
+#include "fs.h"
+#include "file.h"
+#include "fcntl.h"
+
+#define MAP_FAILED ((char *) -1)
 
 struct cpu cpus[NCPU];
 
@@ -636,5 +642,91 @@ procdump(void)
       state = "???";
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
+  }
+}
+
+uint64
+mmap(int length, int prot, int flags, int fd)
+{
+  struct proc *p = myproc();
+  struct VMA v;
+  int i;
+  int found = 0;
+  uint64 addr = (uint64)MAXVA;
+  addr = addr - length;
+  for (i = 0; i < 16; i++) {
+    v = p->vma[i];
+    if (v.used == 1){
+      if (v.address <= addr) {
+        addr = v.address;
+      }
+    }
+    else if (!found){
+      found = i + 1;
+    }
+  }
+  if (found) {
+    addr = PGROUNDUP(addr - length);
+    found -= 1;
+    if (!p->ofile[fd]->writable) {
+      if (!(flags == MAP_PRIVATE)) {
+        return (uint64)MAP_FAILED;
+      }
+    }
+    p->vma[found].used = 1;
+    p->vma[found].address = addr;
+    p->vma[found].length = length;
+    p->vma[found].prot = prot;
+    p->vma[found].flags = flags;
+    p->vma[found].f = p->ofile[fd];
+    filedup(p->vma[found].f);
+
+    if (mappages(p->pagetable, addr, length, 0, PTE_LAZY | PTE_NR | PTE_NX) != 0){
+      return (uint64)MAP_FAILED;
+    }
+    return addr;
+  }
+  else {
+    return (uint64)MAP_FAILED;
+  }
+}
+
+int
+munmap(uint64 addr, int length)
+{
+  int i;
+  struct proc *p = myproc();
+  int found = 0;
+  for (i = 0; i < 16; i++) {
+    if (p->vma[i].used) {
+      if (addr == p->vma[i].address) {
+        found = 1;
+        break;
+      }
+    }
+  }
+  if (!found) {
+    return -1;
+  }
+  else {
+    if (p->vma[i].length == length) {
+      p->vma[i].used = 0;
+    }
+    else {
+      p->vma[i].address = addr + length;
+      p->vma[i].length -= length;
+    }
+    if (p->vma[i].flags == MAP_SHARED) {
+      begin_op();
+      ilock(p->vma[i].f->ip);
+      writei(p->vma[i].f->ip, 1, addr, 0, length);
+      iunlock(p->vma[i].f->ip);
+      end_op();
+    }
+    if (!p->vma[i].used) {
+      fileclose(p->vma[i].f);
+    }
+    uvmunmap(p->pagetable, addr, length/PGSIZE, 1);
+    return 0;
   }
 }

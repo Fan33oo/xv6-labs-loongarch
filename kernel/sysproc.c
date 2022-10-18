@@ -5,6 +5,7 @@
 #include "param.h"
 #include "memlayout.h"
 #include "spinlock.h"
+#include "sleeplock.h"
 #include "proc.h"
 
 #define MAP_FAILED ((char *) -1)
@@ -106,43 +107,15 @@ sys_mmap(void)
    || argint(3, &flags) < 0 || argint(4, &fd) < 0) {
     return (uint64)MAP_FAILED;
   }
-  struct proc *p = myproc();
-  struct VMA v;
-  int i;
-  int found = 0;
-  uint64 addr = (uint64)MAXVA;
-  addr = addr - length;
-  for (i = 0; i < 16; i++) {
-    v = p->vma[i];
-    if (v.used == 1){
-      if (v.address <= addr) {
-        addr = v.address;
-      }
-    }
-    else if (!found){
-      found = i + 1;
-    }
-  }
-  if (found) {
-    addr = PGROUNDUP(addr - length);
-    found -= 1;
-    p->vma[found].used = 1;
-    p->vma[found].address = addr;
-    p->vma[found].length = length;
-    p->vma[found].prot = prot;
-    p->vma[found].flags = flags;
-    p->vma[found].f = p->ofile[fd];
-    filedup(p->vma[found].f);
-    mappages(p->pagetable, addr, PGSIZE, 0, 0);
-    return addr;
-  }
-  else {
-    return (uint64)MAP_FAILED;
-  }
+  return mmap(length, prot, flags, fd);
 }
 
 uint64
 sys_munmap(void)
 {
-  return -1;
+  uint64 addr;
+  int length;
+  if (argaddr(0, &addr) < 0 || argint(1, &length) < 0)
+    return -1;
+  return munmap(addr, length);
 }
