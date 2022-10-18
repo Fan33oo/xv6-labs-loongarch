@@ -298,7 +298,7 @@ fork(void)
         PTE_LAZY | PTE_NR | PTE_NX) != 0){
         panic("fork vma");
       }
-      filedup(np->vma[i].f); 
+      filedup(np->vma[i].f);
     }
   }
 
@@ -733,16 +733,15 @@ munmap(uint64 addr, int length)
     if (p->vma[i].length == length) {
       p->vma[i].used = 0;
     }
-    else {
+    else if(p->vma[i].length > length) {
       p->vma[i].address = addr + length;
       p->vma[i].length -= length;
     }
+    else {
+      return -1;
+    }
     if (p->vma[i].flags == MAP_SHARED) {
-      begin_op();
-      ilock(p->vma[i].f->ip);
-      writei(p->vma[i].f->ip, 1, addr, 0, length);
-      iunlock(p->vma[i].f->ip);
-      end_op();
+      filewrite(p->vma[i].f, addr, length);
     }
     if (!p->vma[i].used) {
       fileclose(p->vma[i].f);
