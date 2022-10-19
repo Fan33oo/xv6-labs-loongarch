@@ -42,7 +42,11 @@ OBJS = \
   $K/sysproc.o\
   $K/sysfile.o\
   $K/uservec.o\
-  $K/exception.o
+  $K/exception.o\
+  $K/e1000.o\
+  $K/net.o\
+  $K/sysnet.o\
+  $K/pci.o\
 
 TOOLPREFIX = loongarch64-unknown-linux-gnu-
 
@@ -60,6 +64,7 @@ CFLAGS += -ffreestanding -fno-common -nostdlib
 CFLAGS += -I. -fno-stack-protector
 CFLAGS += -fno-pie -no-pie
 LDFLAGS = -z max-page-size=4096
+CFLAGS += -DNET_TESTS_PORT=$(SERVERPORT)
 
 $K/kernel: $(OBJS) $K/kernel.ld $U/initcode
 	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS)
@@ -128,6 +133,7 @@ UPROGS=\
 	$U/_wc\
 	$U/_zombie\
 	$U/_uthread\
+	$U/_nettests\
 
 $U/uthread_switch.o : $U/uthread_switch.S
 	$(CC) $(CFLAGS) -c -o $U/uthread_switch.o $U/uthread_switch.S
@@ -147,6 +153,9 @@ all: fs.img $K/kernel
 
 QEMUOPTS=-m $(MEM) -smp $(CPUS) -bios $(BIOS) -kernel $(KERNEL) -append "$(CMDLINE)" $(GRAPHIC) -L ./qemu-loongarch64-runenv
 
+QEMUOPTS += -netdev user,id=net0,hostfwd=udp::$(FWDPORT)-:2000 -object filter-dump,id=net0,netdev=net0,file=packets.pcap
+QEMUOPTS += -device e1000,netdev=net0,bus=pcie.0
+
 qemu: fs.img $K/kernel
 	$(QEMU) $(QEMUOPTS)
 
@@ -164,6 +173,14 @@ print-gdbport:
 qemu-gdb: fs.img $K/kernel .gdbinit
 	@echo "Now run 'loongarch64-unknown-linux-gnu-gdb' in another window"
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
+
+SERVERPORT = $(shell expr `id -u` % 5000 + 25099)
+
+server:
+	python3 server.py $(SERVERPORT)
+
+ping:
+	python3 ping.py $(FWDPORT)
 
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg *.d \

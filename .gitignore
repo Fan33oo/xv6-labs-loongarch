@@ -63,3 +63,4 @@ user/usys.S
 .gitignore
 kernel/ramdisk.h
 xv6.out.find_curdir
+packets.pcap
