@@ -6,13 +6,13 @@
 
 void extioi_init(void)
 {
-    iocsr_writeq(0x1UL << UART0_IRQ, LOONGARCH_IOCSR_EXTIOI_EN_BASE);  
+    iocsr_writeq(0x1UL << UART0_IRQ || 0x1UL << E1000_IRQ, LOONGARCH_IOCSR_EXTIOI_EN_BASE);  
 
-    iocsr_writeq(0x01UL,LOONGARCH_IOCSR_EXTIOI_MAP_BASE);
+    iocsr_writeq(0x01UL, LOONGARCH_IOCSR_EXTIOI_MAP_BASE);
 
-    iocsr_writeq(0x10000UL,LOONGARCH_IOCSR_EXTIOI_ROUTE_BASE);
+    iocsr_writeq(0x10000UL, LOONGARCH_IOCSR_EXTIOI_ROUTE_BASE);
 
-    iocsr_writeq(0x1,LOONGARCH_IOCSR_EXRIOI_NODETYPE_BASE);
+    iocsr_writeq(0x1, LOONGARCH_IOCSR_EXRIOI_NODETYPE_BASE);
 }
 
 // ask the extioi what interrupt we should serve.
