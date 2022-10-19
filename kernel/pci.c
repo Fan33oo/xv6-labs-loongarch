@@ -16,12 +16,12 @@ pci_init()
 {
   // we'll place the e1000 registers at this address.
   // vm.c maps this range.
-  uint64 e1000_regs = 0x40000000L;
+  uint64 e1000_regs = (0x40000000L | DMWIN_MASK);
 
   // qemu -machine virt puts PCIe config space here.
   // vm.c maps this range.
-  uint32  *ecam = (uint32 *) 0x30000000L;
-  
+  uint32  *ecam = (uint32 *) (0x20000000L | DMWIN_MASK);
+
   // look at each possible PCI device on bus 0.
   for(int dev = 0; dev < 32; dev++){
     int bus = 0;
@@ -33,6 +33,7 @@ pci_init()
     
     // 100e:8086 is an e1000
     if(id == 0x100e8086){
+      printf("e1000 found!\n");
       // command and status register.
       // bit 0 : I/O access enable
       // bit 1 : memory access enable

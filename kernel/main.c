@@ -29,6 +29,8 @@ main()
     iinit();         // inode table
     fileinit();      // file table
     ramdiskinit();   // emulated hard disk
+    pci_init();
+    sockinit();
     userinit();      // first user process
     __sync_synchronize();
     started = 1;
