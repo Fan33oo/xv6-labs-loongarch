@@ -10,20 +10,27 @@
 #include "defs.h"
 
 void freerange(void *pa_start, void *pa_end);
+int steal();
+
 
 struct run {
   struct run *next;
 };
 
-struct {
+typedef struct {
   struct spinlock lock;
   struct run *freelist;
 } kmem;
 
+kmem kmem_cpu[NCPU];
+
 void
 kinit()
 {
-  initlock(&kmem.lock, "kmem");
+  int i;
+  for (i = 0; i < NCPU; ++i) {
+    initlock(&kmem_cpu[i].lock, "kmem");
+  }
   freerange((void*)RAMBASE, (void*)RAMSTOP);
 }
 
@@ -53,10 +60,13 @@ kfree(void *pa)
 
   r = (struct run*)pa;
 
-  acquire(&kmem.lock);
-  r->next = kmem.freelist;
-  kmem.freelist = r;
-  release(&kmem.lock);
+  push_off();
+  int cid = cpuid();
+  acquire(&kmem_cpu[cid].lock);
+  r->next = kmem_cpu[cid].freelist;
+  kmem_cpu[cid].freelist = r;
+  release(&kmem_cpu[cid].lock);
+  pop_off();
 }
 
 // Allocate one 4096-byte page of physical memory.
@@ -66,14 +76,52 @@ void *
 kalloc(void)
 {
   struct run *r;
-
-  acquire(&kmem.lock);
-  r = kmem.freelist;
+  push_off();
+  int cid = cpuid();
+  acquire(&kmem_cpu[cid].lock);
+  r = kmem_cpu[cid].freelist;
+  if(r) {
+    kmem_cpu[cid].freelist = r->next;
+  }
+  else {
+    if (steal()) {
+      r = kmem_cpu[cid].freelist;
+      kmem_cpu[cid].freelist = r->next;
+    }
+  }
+  release(&kmem_cpu[cid].lock);
+  pop_off();
   if(r)
-    kmem.freelist = r->next;
-  release(&kmem.lock);
-
-  if(r)
-    memset((char*)r, 5, PGSIZE); // fill with junk 
+    memset((char*)r, 5, PGSIZE); // fill with junk
   return (void*)r;
+}
+
+// call after push_off()
+int
+steal()
+{
+  int cpu;
+  int cid = cpuid();
+  int count = 0;
+  struct run *r;
+  for (cpu = 0; cpu < NCPU; ++cpu) {
+    if (cpu == cid)
+      continue;
+    acquire(&kmem_cpu[cpu].lock);
+    while (count < 50) {
+      if (kmem_cpu[cpu].freelist) {
+        r = kmem_cpu[cpu].freelist;
+        kmem_cpu[cpu].freelist = r->next;
+        r->next = kmem_cpu[cid].freelist;
+        kmem_cpu[cid].freelist = r;
+        count++;
+      }
+      else {
+        break;
+      }
+    }
+    release(&kmem_cpu[cpu].lock);
+  }
+
+  return count;
 }
