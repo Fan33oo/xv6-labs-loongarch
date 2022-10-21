@@ -33,7 +33,7 @@ pci_init()
     
     // 100e:8086 is an e1000
     if(id == 0x100e8086){
-      printf("e1000 found!\n");
+      // printf("e1000 found!\n");
       // command and status register.
       // bit 0 : I/O access enable
       // bit 1 : memory access enable

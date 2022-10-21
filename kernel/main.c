@@ -21,6 +21,8 @@ main()
     printf("\n");
     kinit();         // physical page allocator
     vminit();        // create kernel page table
+    pci_init();
+    sockinit();
     procinit();      // process table
     trapinit();      // trap vectors
     apic_init();     // set up LS7A1000 interrupt controller
@@ -29,8 +31,6 @@ main()
     iinit();         // inode table
     fileinit();      // file table
     ramdiskinit();   // emulated hard disk
-    pci_init();
-    sockinit();
     userinit();      // first user process
     __sync_synchronize();
     started = 1;
