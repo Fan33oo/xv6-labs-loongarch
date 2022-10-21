@@ -7,7 +7,7 @@
 #include "loongarch.h"
 #include "proc.h"
 #include "defs.h"
-#define NLOCK 500
+#define NLOCK 1000
 
 static struct spinlock *locks[NLOCK];
 struct spinlock lock_locks;
