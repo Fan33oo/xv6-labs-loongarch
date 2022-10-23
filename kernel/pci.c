@@ -15,11 +15,9 @@ void
 pci_init()
 {
   // we'll place the e1000 registers at this address.
-  // vm.c maps this range.
   uint64 e1000_regs = (0x40000000L | DMWIN_MASK);
 
   // qemu -machine virt puts PCIe config space here.
-  // vm.c maps this range.
   uint32  *ecam = (uint32 *) (0x20000000L | DMWIN_MASK);
 
   // look at each possible PCI device on bus 0.

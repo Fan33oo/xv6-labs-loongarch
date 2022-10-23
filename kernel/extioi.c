@@ -6,7 +6,7 @@
 
 void extioi_init(void)
 {
-    iocsr_writeq((0x1UL << UART0_IRQ) | (0x1UL << E1000_IRQ), LOONGARCH_IOCSR_EXTIOI_EN_BASE);  
+    iocsr_writeq(((0x1UL << UART0_IRQ) | (0x1UL << E1000_IRQ)), LOONGARCH_IOCSR_EXTIOI_EN_BASE);  
 
     iocsr_writeq(0x01UL, LOONGARCH_IOCSR_EXTIOI_MAP_BASE);
 
